@@ -21,7 +21,8 @@ const state = {
     trail: [],
     totalPages: 5,
     mediapipeReady: false,
-    cameraActive: false
+    cameraActive: false,
+    mediapipeError: null
 };
 
 const PAGES = [
@@ -107,6 +108,33 @@ function showCameraError(msg) {
     log('Camera error: ' + msg);
 }
 
+function loadMediaPipe() {
+    return new Promise((resolve, reject) => {
+        // Check if Hands is already available globally
+        if (typeof Hands !== 'undefined') {
+            log('MediaPipe Hands already available globally');
+            resolve();
+            return;
+        }
+
+        // Load MediaPipe Hands script dynamically
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1633958589/hands.js';
+        script.onload = () => {
+            log('MediaPipe Hands script loaded');
+            if (typeof Hands !== 'undefined') {
+                resolve();
+            } else {
+                reject(new Error('Hands not defined after script load'));
+            }
+        };
+        script.onerror = () => {
+            reject(new Error('Failed to load MediaPipe Hands script from CDN'));
+        };
+        document.head.appendChild(script);
+    });
+}
+
 startBtn.addEventListener('click', async () => {
     try {
         cameraError.style.display = 'none';
@@ -121,7 +149,12 @@ startBtn.addEventListener('click', async () => {
         overlayCanvas.width = videoWidth;
         overlayCanvas.height = videoHeight;
 
-        log('Initializing MediaPipe Hands...');
+        log('Loading MediaPipe Hands...');
+        await loadMediaPipe();
+        state.mediapipeReady = true;
+        log('MediaPipe Hands ready');
+
+        log('Initializing Hands solution...');
         hands = new Hands({
             locateFile: (file) => {
                 return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1633958589/${file}`;
@@ -135,8 +168,6 @@ startBtn.addEventListener('click', async () => {
             minTrackingConfidence: TRACKING_CONFIDENCE
         });
         hands.onResults(onResults);
-        state.mediapipeReady = true;
-        log('MediaPipe Hands ready');
 
         log('Starting camera...');
         camera = new Camera(videoEl, {
