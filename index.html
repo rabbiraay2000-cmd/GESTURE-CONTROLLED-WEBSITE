@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesture-Controlled Presentation | Touchless Slideshow</title>
+    <meta name="description" content="A touchless gesture-controlled website using real-time hand tracking with MediaPipe Hands">
+    <link rel="stylesheet" href="style.css">
+    <!-- MediaPipe Hands libraries via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+</head>
+<body>
+
+    <header>
+        <div class="container header-inner">
+            <h1>👋 Gesture-Controlled Presentation</h1>
+            <p class="subtitle">Touchless slideshow control using real-time hand tracking & MediaPipe Hands</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Left: Camera View -->
+        <section class="camera-panel">
+            <div class="panel-header">
+                <span class="panel-title">Live Camera View</span>
+                <div class="camera-controls">
+                    <button id="startCam" class="btn btn-primary">Start Camera</button>
+                    <button id="stopCam" class="btn btn-danger" disabled>Stop Camera</button>
+                </div>
+            </div>
+            <div class="camera-wrap">
+                <video id="video" playsinline autoplay muted></video>
+                <canvas id="overlay" class="overlay-canvas"></canvas>
+                <div id="camEmpty" class="cam-empty">
+                    <p>Camera not started</p>
+                    <p class="small">Click "Start Camera" to begin gesture tracking</p>
+                </div>
+            </div>
+            <div id="cameraError" class="camera-error" style="display:none;">
+                ⚠️ Camera access denied or unavailable. Keyboard controls still work.
+            </div>
+        </section>
+
+        <!-- Center: Slideshow -->
+        <section class="slideshow-panel">
+            <div class="slideshow-wrap">
+                <div id="slides">
+                    <!-- Slides injected by JavaScript -->
+                </div>
+                <div class="slide-nav">
+                    <button id="prevBtn" class="nav-btn nav-prev" aria-label="Previous slide">&#9664;</button>
+                    <div class="slide-counter" id="slideCounter">Slide 1 / 5</div>
+                    <button id="nextBtn" class="nav-btn nav-next" aria-label="Next slide">&#9654;</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right: Status Panel -->
+        <section class="status-panel">
+            <div class="panel-header">
+                <span class="panel-title">Status Panel</span>
+            </div>
+            <div class="status-content">
+                <div class="status-item">
+                    <span class="status-label">Detected Gesture</span>
+                    <span id="gestureText" class="status-value">—</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Control Mode</span>
+                    <span id="modeText" class="status-value mode-active">Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Hand Detected</span>
+                    <span id="handText" class="status-value">No</span>
+                </div>
+                <div class="gesture-legend">
+                    <h4>Gesture Guide</h4>
+                    <ul class="legend-list">
+                        <li><span class="legend-swipe">&#9654; Swipe Right</span> → Next Slide</li>
+                        <li><span class="legend-swipe">&#9664; Swipe Left</span> → Previous Slide</li>
+                        <li><span class="legend-fist">✊ Fist</span> → Pause Control</li>
+                        <li><span class="legend-palm">🖐 Open Palm</span> → Resume</li>
+                    </ul>
+                </div>
+                <div class="keyboard-hint">
+                    <h4>Keyboard Fallback</h4>
+                    <p>Use <kbd>←</kbd> <kbd>→</kbd> arrow keys to change slides</p>
+                </div>
+                <div class="privacy-note">
+                    <h4>🔒 Privacy</h4>
+                    <p>All video is processed locally in your browser. Nothing is stored or uploaded.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Gesture-Controlled Presentation Mini Project | CSE (Cyber Security) | J.J. College of Engineering and Technology</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
