@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gesture-Controlled Presentation | Touchless Slideshow</title>
+    <title>Gesture-Controlled Website | Touchless Hand Tracking</title>
     <meta name="description" content="A touchless gesture-controlled website using real-time hand tracking with MediaPipe Hands">
     <link rel="stylesheet" href="style.css">
     <!-- MediaPipe Hands libraries via CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1633958589"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1623143385"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1623143385"></script>
 </head>
 <body>
 
     <header>
         <div class="container header-inner">
-            <h1>👋 Gesture-Controlled Presentation</h1>
-            <p class="subtitle">Touchless slideshow control using real-time hand tracking & MediaPipe Hands</p>
+            <h1>👋 Gesture-Controlled Website</h1>
+            <p class="subtitle">Touchless control using real-time hand tracking & MediaPipe Hands</p>
         </div>
     </header>
 
@@ -39,20 +39,25 @@
                 </div>
             </div>
             <div id="cameraError" class="camera-error" style="display:none;">
-                ⚠️ Camera access denied or unavailable. Keyboard controls still work.
+                ⚠️ Camera access denied or unavailable. Check console (F12) for details.
+            </div>
+            <div id="debugInfo" class="debug-info" style="display:none;">
+                <small>Debug info will appear here</small>
             </div>
         </section>
 
-        <!-- Center: Slideshow -->
-        <section class="slideshow-panel">
-            <div class="slideshow-wrap">
-                <div id="slides">
-                    <!-- Slides injected by JavaScript -->
+        <!-- Center: Website Content -->
+        <section class="content-panel">
+            <div class="content-wrap">
+                <h2 id="pageTitle">Welcome</h2>
+                <div id="pageContent">
+                    <p>This is a touchless gesture-controlled website.</p>
+                    <p>Show your hand to the camera and use gestures to navigate.</p>
                 </div>
-                <div class="slide-nav">
-                    <button id="prevBtn" class="nav-btn nav-prev" aria-label="Previous slide">&#9664;</button>
-                    <div class="slide-counter" id="slideCounter">Slide 1 / 5</div>
-                    <button id="nextBtn" class="nav-btn nav-next" aria-label="Next slide">&#9654;</button>
+                <div class="page-nav">
+                    <button id="prevPage" class="nav-btn nav-prev" aria-label="Previous page">&#9664;</button>
+                    <div class="page-counter" id="pageCounter">Page 1 / 5</div>
+                    <button id="nextPage" class="nav-btn nav-next" aria-label="Next page">&#9654;</button>
                 </div>
             </div>
         </section>
@@ -78,15 +83,15 @@
                 <div class="gesture-legend">
                     <h4>Gesture Guide</h4>
                     <ul class="legend-list">
-                        <li><span class="legend-swipe">&#9654; Swipe Right</span> → Next Slide</li>
-                        <li><span class="legend-swipe">&#9664; Swipe Left</span> → Previous Slide</li>
+                        <li><span class="legend-swipe">👉 Swipe Right</span> → Next Page</li>
+                        <li><span class="legend-swipe">👈 Swipe Left</span> → Previous Page</li>
                         <li><span class="legend-fist">✊ Fist</span> → Pause Control</li>
                         <li><span class="legend-palm">🖐 Open Palm</span> → Resume</li>
                     </ul>
                 </div>
                 <div class="keyboard-hint">
                     <h4>Keyboard Fallback</h4>
-                    <p>Use <kbd>←</kbd> <kbd>→</kbd> arrow keys to change slides</p>
+                    <p>Use <kbd>←</kbd> <kbd>→</kbd> arrow keys to change pages</p>
                 </div>
                 <div class="privacy-note">
                     <h4>🔒 Privacy</h4>
@@ -98,7 +103,7 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2026 Gesture-Controlled Presentation Mini Project | CSE (Cyber Security) | J.J. College of Engineering and Technology</p>
+            <p>&copy; 2026 Gesture-Controlled Website | CSE (Cyber Security)</p>
         </div>
     </footer>
 

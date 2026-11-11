@@ -1,24 +1,24 @@
-# Gesture-Controlled Presentation Website
+# Gesture-Controlled Website
 
-A touchless gesture-controlled website for slideshow presentations, built using **HTML5, CSS3, JavaScript (ES6)** and the **MediaPipe Hands** library for real-time hand tracking.
+A touchless gesture-controlled website built using **HTML5, CSS3, JavaScript (ES6)** and the **MediaPipe Hands** library for real-time hand tracking.
 
 ## Project Overview
 
-This website lets a user operate a slideshow by moving a hand in front of an ordinary laptop webcam — no mouse, keyboard, touch screen, or extra hardware required. All video is processed locally in the browser, protecting user privacy.
+This website lets a user navigate web pages by moving a hand in front of an ordinary laptop webcam — no mouse, keyboard, touch screen, or extra hardware required. All video is processed locally in the browser, protecting user privacy.
 
 ## Features
 
 - **Hand Gesture Control:**
-  - 🖐 Open palm swipe → **Next slide**
-  - 🖐 Open palm swipe ← **Previous slide**
+  - 👉 Open palm swipe → **Next page**
+  - 👈 Open palm swipe ← **Previous page**
   - ✊ Closed fist → **Pause gesture control**
   - 🖐 Open palm (when paused) → **Resume**
 - **Hand skeleton overlay** drawn on the live camera feed
 - **Status panel** shows detected gesture and Active/Paused state in real time
-- **Cooldown timer** (900 ms) prevents accidental slide changes
+- **Cooldown timer** (900 ms) prevents accidental page changes
 - **Keyboard fallback** — left/right arrow keys always work
 - **On-screen Previous/Next buttons** as an additional backup
-- **Slide counter** (e.g., "Slide 2 / 5")
+- **Page counter** (e.g., "Page 2 / 5")
 - **Privacy-first:** all video processed locally in the browser; nothing is stored or uploaded
 - **Single-page app** — no backend, no installation, no special hardware
 
@@ -29,27 +29,15 @@ Because the browser's `getUserMedia` API requires a **secure origin**, the page 
 ### Option 1: Using Python (simplest)
 
 ```bash
-# Navigate to the project folder
 cd "D:\CONTROLLED MINI PROJECT"
-
-# Start a local server (Python 3)
 python -m http.server 8000
-```
-
-Then open your browser at: `http://localhost:8000`
-
-### Option 2: Using Node.js (http-server)
-
-```bash
-cd "D:\CONTROLLED MINI PROJECT"
-npx http-server -p 8000
 ```
 
 Then open: `http://localhost:8000`
 
-### Option 3: VS Code Live Server
+### Option 2: Using VS Code Live Server
 
-Install the "Live Server" extension in VS Code, open the project folder, and click "Go Live".
+Install the "Live Server" extension, open the project folder, and click "Go Live".
 
 ## Project Structure
 
@@ -57,11 +45,11 @@ Install the "Live Server" extension in VS Code, open the project folder, and cli
 CONTROLLED MINI PROJECT/
 ├── index.html    # Main HTML page
 ├── style.css     # Stylesheet
-├── script.js     # Gesture engine & slideshow logic
+├── script.js     # Gesture engine & navigation logic
 └── README.md     # This file
 ```
 
-## Gesture Engine (from the project report)
+## Gesture Engine
 
 The system uses **MediaPipe Hands** to detect **21 hand landmarks** per frame:
 
@@ -75,9 +63,15 @@ The system uses **MediaPipe Hands** to detect **21 hand landmarks** per frame:
 - Camera access permission
 - Page served over **localhost** or **HTTPS** (required for `getUserMedia`)
 
+## Deployment (GitHub Pages)
+
+1. Push files to GitHub repository
+2. Go to Settings → Pages
+3. Source: Deploy from a branch → `main` / `/ (root)`
+4. Site will be live at your GitHub Pages URL
+
 ## Project Team
 
-MANIVEL.R, HARISH.S, ANUSHRAJA.P, DHAYANANTHAN.M, RABBI RAAY.A  
 Department of CSE (Cyber Security)  
 J. J. College of Engineering and Technology, Tiruchirappalli  
 Anna University, Chennai
