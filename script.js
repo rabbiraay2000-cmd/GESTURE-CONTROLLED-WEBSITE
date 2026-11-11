@@ -21,8 +21,7 @@ const state = {
     trail: [],
     totalPages: 5,
     mediapipeReady: false,
-    cameraActive: false,
-    mediapipeError: null
+    cameraActive: false
 };
 
 const PAGES = [
@@ -59,6 +58,21 @@ function log(msg) {
 }
 
 function init() {
+    // Check if MediaPipe loaded
+    if (typeof Hands === 'undefined') {
+        log('ERROR: Hands is not defined - MediaPipe Hands library not loaded');
+        showCameraError('MediaPipe Hands library failed to load. Check internet connection.');
+        return;
+    }
+    if (typeof Camera === 'undefined') {
+        log('ERROR: Camera is not defined - MediaPipe Camera Utils not loaded');
+        showCameraError('MediaPipe Camera Utils failed to load.');
+        return;
+    }
+
+    log('MediaPipe libraries loaded successfully');
+    state.mediapipeReady = true;
+
     renderPage(0);
     updateStatus('—', 'Active', 'No');
     setupKeyboard();
@@ -108,34 +122,12 @@ function showCameraError(msg) {
     log('Camera error: ' + msg);
 }
 
-function loadMediaPipe() {
-    return new Promise((resolve, reject) => {
-        // Check if Hands is already available globally
-        if (typeof Hands !== 'undefined') {
-            log('MediaPipe Hands already available globally');
-            resolve();
-            return;
-        }
-
-        // Load MediaPipe Hands script dynamically
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1633958589/hands.js';
-        script.onload = () => {
-            log('MediaPipe Hands script loaded');
-            if (typeof Hands !== 'undefined') {
-                resolve();
-            } else {
-                reject(new Error('Hands not defined after script load'));
-            }
-        };
-        script.onerror = () => {
-            reject(new Error('Failed to load MediaPipe Hands script from CDN'));
-        };
-        document.head.appendChild(script);
-    });
-}
-
 startBtn.addEventListener('click', async () => {
+    if (!state.mediapipeReady) {
+        showCameraError('MediaPipe Hands not ready. Refresh the page and try again.');
+        return;
+    }
+
     try {
         cameraError.style.display = 'none';
         camEmpty.style.display = 'none';
@@ -148,11 +140,6 @@ startBtn.addEventListener('click', async () => {
         videoEl.height = videoHeight;
         overlayCanvas.width = videoWidth;
         overlayCanvas.height = videoHeight;
-
-        log('Loading MediaPipe Hands...');
-        await loadMediaPipe();
-        state.mediapipeReady = true;
-        log('MediaPipe Hands ready');
 
         log('Initializing Hands solution...');
         hands = new Hands({
@@ -202,7 +189,6 @@ stopBtn.addEventListener('click', () => {
     }
     hands = null;
     state.cameraActive = false;
-    state.mediapipeReady = false;
     ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
     videoEl.style.display = 'none';
     overlayCanvas.style.display = 'none';
