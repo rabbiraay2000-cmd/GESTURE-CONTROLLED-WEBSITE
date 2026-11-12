@@ -990,9 +990,9 @@
                 return;
             }
 
-            // Draw hand skeleton
-            drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: '#06b6d4', lineWidth: 2 });
-            drawLandmarks(ctx, lm, { color: '#f472b6', lineWidth: 2, radius: 3 });
+            // Draw hand skeleton — white lines with orange/amber dots (matching MediaPipe reference style)
+            drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: '#ffffff', lineWidth: 2 });
+            drawLandmarks(ctx, lm, { color: '#f59e0b', lineWidth: 2, radius: 4 });
 
             const now = performance.now();
 
