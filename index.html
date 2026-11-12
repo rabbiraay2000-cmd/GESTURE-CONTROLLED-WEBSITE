@@ -712,7 +712,7 @@ function onResults(results) {
   setStatus(statusReject, reject || '—', reject ? 'warn' : '');
   dbgReject.textContent = reject || '—';
 
-  // ---- Actions ----
+  // ---- Mode changes (require stability) ----
   if (!state.paused && isStable) {
     if (pose === 'fist') {
       state.paused = true;
@@ -732,7 +732,10 @@ function onResults(results) {
       state.stablePose = null; state.stableCount = 0;
       return;
     }
-    // Instant gestures (no hold required)
+  }
+
+  // ---- Instant gestures (no stability required) ----
+  if (!state.paused) {
     if (pose === 'pinch') {
       setStatus(statusGesture, '🤏 Pinch', 'ok');
       log('Pinch');
@@ -759,19 +762,20 @@ function onResults(results) {
     }
   }
 
-  // Swipe detection only while open palm and stable
-  if (pose === 'open' && isStable && !state.paused) {
+  // ---- Swipe detection (works immediately when open palm shown, no stability gate) ----
+  if (pose === 'open' && !state.paused) {
     const swipe = detectSwipe(lm, now);
     if (swipe) {
       renderSlide(state.index + (swipe === 'Swipe Right' ? 1 : -1));
       state.lastSwipe = now;
       state.trail = [];
       setStatus(statusGesture, swipe, 'ok');
-      setStatus(statusSwipe, 'swipe', 'ok');
+      setStatus(statusSwipe, swipe, 'ok');
       log(swipe);
-      state.stablePose = null; state.stableCount = 0;
       return;
     }
+    setStatus(statusGesture, '🖐 Open Palm', 'ok');
+    setStatus(statusSwipe, '0,0', '');
   }
 
   // Live status text
