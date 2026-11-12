@@ -723,10 +723,11 @@ function onResults(results) {
       state.stablePose = null; state.stableCount = 0;
       return;
     }
-    if (pose === 'open') {
+    if (pose === 'open' && state.paused) {
       state.paused = false;
+      state.trail = [];
       setStatus(statusMode, 'Active', 'ok');
-      setStatus(statusGesture, '🖐 Open Palm (Resume)', 'ok');
+      setStatus(statusGesture, '🖐 Open Palm → Resume', 'ok');
       log('Open palm confirmed -> Active');
       state.stablePose = null; state.stableCount = 0;
       return;
