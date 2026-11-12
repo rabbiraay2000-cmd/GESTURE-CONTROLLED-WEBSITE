@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Touchless Gesture-Controlled Website using Real-Time Hand Tracking with MediaPipe Hands">
-<title>Gesture-Controlled Website | Touchless Hand Tracking</title>
+<title>Gesture-Controlled Website | MediaPipe Hands</title>
 <!-- MediaPipe Hands via CDN (pinned versions) -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
@@ -13,12 +13,9 @@
   :root {
     --primary: #6366f1;
     --primary-dark: #4f46e5;
-    --primary-light: #a5b4fc;
     --success: #10b981;
-    --success-light: #6ee7b7;
     --danger: #ef4444;
     --warning: #f59e0b;
-    --info: #3b82f6;
     --bg: #0f172a;
     --surface: #1e293b;
     --surface-elevated: #334155;
@@ -26,604 +23,93 @@
     --text-secondary: #cbd5e1;
     --text-muted: #94a3b8;
     --border: #334155;
-    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-    --radius: 16px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --radius: 12px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
-    overflow-x: hidden;
   }
-  .container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-  }
-  /* ---------- Header ---------- */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
   header {
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(12px);
+    background: rgba(15,23,42,0.8);
+    backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
-    padding: 1.25rem 0;
+    padding: 1rem 0;
     position: sticky;
     top: 0;
     z-index: 100;
   }
-  .header-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    text-decoration: none;
-  }
-  .brand-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    box-shadow: var(--shadow);
-  }
-  .brand-text h1 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.025em;
-  }
-  .brand-text p {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  .badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: var(--surface-elevated);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-  /* ---------- Main Layout ---------- */
-  main {
-    padding: 2rem 0;
-    display: grid;
-    grid-template-columns: 380px 1fr 340px;
-    gap: 1.5rem;
-    align-items: start;
-    min-height: calc(100vh - 170px);
-  }
-  /* ---------- Panels ---------- */
-  .panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-  .panel-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .panel-title::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    background: var(--primary);
-    border-radius: 50%;
-  }
-  /* ---------- Camera Panel ---------- */
-  .camera-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .camera-wrap {
-    position: relative;
-    aspect-ratio: 4 / 3;
-    background: #000;
-    border-radius: var(--radius);
-    overflow: hidden;
-    border: 2px solid var(--border);
-    box-shadow: var(--shadow-lg);
-    background: linear-gradient(135deg, #000 0%, #1e293b 100%);
-  }
-  .camera-wrap video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scaleX(-1);
-    display: block;
-  }
-  .overlay-canvas {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-  }
-  .cam-empty {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    background: rgba(15, 23, 42, 0.9);
-    z-index: 10;
-  }
-  .cam-empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
-  .cam-empty h3 { color: var(--text); font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
-  .cam-empty p { font-size: 0.875rem; color: var(--text-muted); }
-  .camera-controls {
-    display: flex;
-    gap: 0.75rem;
-  }
-  .btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: var(--transition);
-    flex: 1;
-    justify-content: center;
-  }
+  .header-inner { display: flex; align-items: center; gap: 1rem; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.25rem; }
+  .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  main { padding: 2rem 0; display: grid; grid-template-columns: 360px 1fr 320px; gap: 1rem; align-items: start; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 10px 15px -5px rgba(0,0,0,0.3); overflow: hidden; display: flex; flex-direction: column; }
+  .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); background: var(--surface-elevated); }
+  .panel-title { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem; }
+  .panel-title::before { content:""; width:6px; height:6px; background: var(--primary); border-radius: 50%; }
+  .panel-body { padding: 1rem; flex:1; display: flex; flex-direction: column; gap: 1rem; }
+
+  /* Camera */
+  .camera-wrap { position: relative; aspect-ratio: 4/3; background: #000; border-radius: var(--radius); overflow: hidden; border: 2px solid var(--border); }
+  .camera-wrap video { width:100%; height:100%; object-fit: cover; transform: scaleX(-1); display: block; }
+  .overlay-canvas { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; }
+  .cam-empty { position: absolute; inset:0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); background: rgba(0,0,0,0.8); }
+  .camera-controls { display: flex; gap: 0.75rem; }
+  .btn { padding: 0.7rem 1.2rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; flex:1; justify-content: center; }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
-  }
-  .btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
-  }
-  .btn-danger { background: var(--danger); color: white; }
-  .btn-danger:hover:not(:disabled) { background: #dc2626; transform: translateY(-2px); }
-  .btn-ghost {
-    background: var(--surface-elevated);
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-  }
-  .btn-ghost:hover:not(:disabled) {
-    background: var(--surface);
-    color: var(--text);
-    border-color: var(--primary);
-  }
-  .camera-error {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: var(--danger);
-    padding: 0.875rem;
-    border-radius: 10px;
-    font-size: 0.875rem;
-    display: none;
-  }
-  .debug-info {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    color: var(--warning);
-    padding: 0.875rem;
-    border-radius: 10px;
-    font-size: 0.75rem;
-    font-family: monospace;
-    display: none;
-    max-height: 150px;
-    overflow-y: auto;
-  }
-  .hand-warning {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    color: var(--warning);
-    padding: 0.875rem;
-    border-radius: 10px;
-    font-size: 0.875rem;
-    display: none;
-    text-align: center;
-  }
-  /* Sensitivity slider */
-  .slider-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-  }
-  .slider-row label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    display: flex;
-    justify-content: space-between;
-  }
-  input[type=range] {
-    width: 100%;
-    accent-color: var(--primary);
-  }
-  /* ---------- Content Panel (Slides) ---------- */
-  .content-panel {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    position: relative;
-  }
-  .content-wrap {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
-    overflow: hidden;
-    position: relative;
-  }
-  #laserCanvas {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 5;
-  }
-  .slides-container {
-    position: relative;
-    flex: 1;
-    overflow: hidden;
-  }
-  .slide {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem 2rem;
-    text-align: center;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateX(30px);
-    transition: var(--transition);
-  }
-  .slide.active {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(0);
-    position: relative;
-  }
-  .slide.exit {
-    transform: translateX(-30px);
-    opacity: 0;
-    visibility: hidden;
-  }
-  .slide-icon { font-size: 4rem; margin-bottom: 1.5rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
-  .slide h2 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: var(--text);
-    margin-bottom: 1rem;
-    letter-spacing: -0.03em;
-    background: linear-gradient(135deg, var(--text) 0%, var(--primary-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .slide p {
-    font-size: 1.125rem;
-    color: var(--text-secondary);
-    max-width: 500px;
-    margin: 0 auto;
-    line-height: 1.8;
-  }
-  .slide ul {
-    text-align: left;
-    max-width: 500px;
-    margin: 1rem auto 0;
-    color: var(--text-secondary);
-    line-height: 1.8;
-  }
-  .slide ul li { margin-bottom: 0.5rem; }
-  .slide-content { max-width: 600px; margin: 0 auto; }
-  /* Quiz slide */
-  .quiz-options {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 2rem;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .quiz-option {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: var(--surface-elevated);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: var(--transition);
-  }
-  .quiz-option.highlighted {
-    border-color: var(--primary);
-    background: rgba(99, 102, 241, 0.1);
-  }
-  .quiz-option.selected {
-    border-color: var(--success);
-    background: rgba(16, 185, 129, 0.1);
-  }
-  .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
-  .quiz-option.wrong { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
-  .quiz-letter {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1rem;
-  }
-  .quiz-result {
-    margin-top: 1.5rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
-  /* Page nav */
-  .page-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    background: var(--surface-elevated);
-    border-top: 1px solid var(--border);
-  }
-  .nav-btn {
-    background: var(--surface);
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-  }
-  .nav-btn:hover:not(:disabled) {
-    background: var(--surface-elevated);
-    color: var(--text);
-    border-color: var(--primary);
-    transform: translateY(-2px);
-  }
-  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .page-counter {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    background: var(--surface);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-  }
-  /* ---------- Status Panel ---------- */
-  .status-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .status-content {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow-lg);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .status-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.875rem;
-    background: rgba(30, 41, 59, 0.4);
-    border-radius: 10px;
-    border: 1px solid rgba(51, 65, 85, 0.3);
-  }
-  .status-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .status-value {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--border);
-  }
-  .status-value.mode-active { color: var(--success); border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.1); }
-  .status-value.mode-paused { color: var(--warning); border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.1); }
-  .status-value.mode-error { color: var(--danger); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); }
-  .status-value.mode-demo { color: var(--info); border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.1); }
-  /* Progress ring */
-  .progress-ring-wrapper {
-    position: relative;
-    width: 60px; height: 60px;
-  }
-  .progress-ring {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    background: conic-gradient(var(--primary) 0deg, rgba(99,102,241,0.2) 0deg);
-    -webkit-mask: radial-gradient(circle, transparent 60%, #000 65%);
-    mask: radial-gradient(circle, transparent 60%, #000 65%);
-    transition: transform 0.1s linear;
-    transform: rotate(-90deg);
-    display: none;
-  }
-  .progress-ring.active { display: block; }
-  .progress-ring-inner {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--text);
-    pointer-events: none;
-  }
-  /* Gesture log */
-  .gesture-log {
-    max-height: 120px;
-    overflow-y: auto;
-    font-size: 0.75rem;
-    font-family: monospace;
-    color: var(--text-muted);
-    background: rgba(0,0,0,0.2);
-    border-radius: 8px;
-    padding: 0.5rem;
-    border: 1px solid var(--border);
-  }
-  .log-entry { margin-bottom: 0.25rem; padding: 0.125rem 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
-  .log-entry:last-child { border-bottom: none; }
-  .meta-row {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: 0.5rem;
-  }
-  .meta-item {
-    flex: 1;
-    background: var(--surface-elevated);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.5rem;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    text-align: center;
-  }
-  /* ---------- Footer ---------- */
-  footer {
-    background: rgba(15, 23, 42, 0.8);
-    border-top: 1px solid var(--border);
-    padding: 1.5rem 0;
-    margin-top: auto;
-  }
-  footer .container { text-align: center; color: var(--text-muted); font-size: 0.8rem; }
-  /* ---------- Overlays ---------- */
-  .overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.9);
-    backdrop-filter: blur(8px);
-    z-index: 100;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-  }
-  .overlay.active { display: flex; }
-  .overlay-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 2rem;
-    max-width: 500px;
-    width: 90%;
-    box-shadow: var(--shadow-lg);
-    text-align: center;
-  }
-  .overlay h2 { font-size: 1.5rem; margin-bottom: 1rem; color: var(--text); }
-  .overlay p { color: var(--text-secondary); margin-bottom: 1.5rem; }
-  .tutorial-step {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
-    background: rgba(30, 41, 59, 0.4);
-    border-radius: 10px;
-    margin-bottom: 0.75rem;
-    text-align: left;
-  }
-  .tutorial-step.done .check { color: var(--success); }
-  .tutorial-step .check { color: var(--text-muted); font-size: 1.2rem; }
-  .tutorial-step .caption { flex: 1; font-size: 0.9rem; color: var(--text-secondary); }
-  .countdown { font-size: 2rem; font-weight: 700; color: var(--primary); margin: 1rem 0; }
-  .fullscreen-hint {
-    position: fixed;
-    top: 1rem; right: 1rem;
-    background: var(--surface-elevated);
-    border: 1px solid var(--border);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    z-index: 50;
-    display: none;
-  }
-  /* ---------- Like animation ---------- */
-  .like-float {
-    position: absolute;
-    font-size: 2rem;
-    pointer-events: none;
-    animation: floatUp 1s ease-out forwards;
-    z-index: 20;
-  }
-  @keyframes floatUp {
-    0% { transform: translateY(0) scale(1); opacity: 1; }
-    100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
-  }
-  /* ---------- Responsive ---------- */
-  @media (max-width: 1024px) {
-    main { grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .status-panel { grid-column: 1 / -1; }
-  }
-  @media (max-width: 768px) {
-    main { grid-template-columns: 1fr; gap: 1rem; }
-    .header-inner { flex-direction: column; gap: 1rem; text-align: center; }
-    .header-right { width: 100%; justify-content: center; }
-    .slide h2 { font-size: 1.75rem; }
-  }
-  .fade-in { animation: fadeIn 0.5s ease-in-out; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+  .btn-outline:hover:not(:disabled) { border-color: var(--primary); color: var(--text); }
+
+  .hint { display: none; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; text-align: center; margin-top: 0.5rem; }
+  .hint.show { display: block; }
+  .hint-dark { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--danger); }
+  .hint-far { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: var(--warning); }
+  .hint-edge { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: var(--primary); }
+
+  .slider-row { display: flex; flex-direction: column; gap: 0.4rem; }
+  .slider-row label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); }
+  input[type=range] { width: 100%; accent-color: var(--primary); }
+
+  /* Slides */
+  .slides-wrap { position: relative; flex:1; background: var(--surface-elevated); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+  #slides { position: relative; height: 400px; overflow: hidden; }
+  .slide { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; opacity: 0; visibility: hidden; transform: translateX(20px); transition: all 0.4s ease; background: var(--surface); }
+  .slide.active { opacity: 1; visibility: visible; transform: translateX(0); position: relative; }
+  .slide.exit { opacity: 0; visibility: hidden; transform: translateX(-20px); }
+  .slide-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .slide h2 { font-size: 2rem; margin-bottom: 0.75rem; color: var(--text); }
+  .slide p { color: var(--text-secondary); max-width: 450px; margin: 0 auto; line-height: 1.6; }
+  .page-nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid var(--border); background: var(--surface); }
+  .nav-btn { background: var(--surface-elevated); color: var(--text-secondary); border: 1px solid var(--border); width: 44px; height: 44px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .nav-btn:hover:not(:disabled) { background: var(--surface); color: var(--text); border-color: var(--primary); }
+  .nav-btn:disabled { opacity: 0.4; }
+  .page-counter { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
+
+  /* Status / Debug */
+  .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .status-item { background: rgba(15,23,42,0.4); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+  .status-label { font-size: 0.75rem; color: var(--text-muted); }
+  .status-value { font-size: 0.85rem; font-weight: 700; color: var(--text); font-family: monospace; }
+  .status-value.ok { color: var(--success); }
+  .status-value.warn { color: var(--warning); }
+  .status-value.err { color: var(--danger); }
+
+  #debugPanel { display: none; margin-top: 1rem; background: rgba(0,0,0,0.6); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; font-size: 0.75rem; font-family: monospace; color: var(--text-secondary); overflow-x: auto; max-height: 200px; overflow-y: auto; }
+  #debugPanel.show { display: block; }
+  .debug-row { margin-bottom: 0.3rem; display: flex; justify-content: space-between; }
+
+  .calibrate-box { border: 1px dashed var(--border); border-radius: 8px; padding: 1rem; background: rgba(255,255,255,0.03); }
+
+  .canvas-hint { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #fff; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; pointer-events: none; white-space: nowrap; }
+
+  footer { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -632,229 +118,147 @@
   <div class="container header-inner">
     <a href="#" class="brand">
       <div class="brand-icon">👋</div>
-      <div class="brand-text">
-        <h1>Gesture-Controlled Website</h1>
-        <p>Touchless Hand Tracking</p>
-      </div>
+      Gesture-Controlled Website
     </a>
-    <div class="header-right">
-      <div id="fullscreenHint" class="fullscreen-hint">⛶ Fullscreen</div>
-      <div class="badge">
-        <span id="statusDot"></span>
-        <span id="statusText">Initializing...</span>
-      </div>
-    </div>
+    <span id="connBadge" style="font-size:0.75rem;padding:0.4rem 0.8rem;background:var(--surface-elevated);border:1px solid var(--border);border-radius:20px;color:var(--text-muted);">Initializing...</span>
   </div>
 </header>
 
 <main class="container">
   <!-- Camera Panel -->
-  <section class="camera-panel">
+  <section class="panel">
     <div class="panel-header">
       <span class="panel-title">Live Camera View</span>
+      <span id="fpsBadge" style="font-size:0.7rem;color:var(--text-muted);">FPS: --</span>
     </div>
-    <div class="camera-wrap">
-      <video id="video" playsinline autoplay muted></video>
-      <canvas id="overlay" class="overlay-canvas"></canvas>
-      <div id="camEmpty" class="cam-empty">
-        <div class="cam-empty-icon">📷</div>
-        <h3 id="emptyTitle">Camera Not Started</h3>
-        <p id="emptySub">Click "Start Camera" to begin gesture tracking</p>
+    <div class="panel-body" style="flex-direction:column;">
+      <div class="camera-wrap">
+        <video id="video" playsinline autoplay muted></video>
+        <canvas id="overlay" class="overlay-canvas"></canvas>
+        <div class="cam-empty" id="camEmpty">
+          <div style="font-size:2.5rem;margin-bottom:0.75rem;">📷</div>
+          <div>Camera not started</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">Click Start Camera</div>
+        </div>
+        <div id="canvasHint" class="canvas-hint"></div>
       </div>
-    </div>
-    <div class="camera-controls">
-      <button id="startCam" class="btn btn-primary">Start Camera</button>
-      <button id="stopCam" class="btn btn-danger" disabled>Stop Camera</button>
-    </div>
-    <div id="cameraError" class="camera-error"></div>
-    <div id="handWarning" class="hand-warning"></div>
-    <div id="debugInfo" class="debug-info"></div>
-
-    <div class="slider-row">
-      <label>Swipe Distance <span id="swipeVal">0.25</span></label>
-      <input type="range" id="sensSwipe" min="0.1" max="0.5" step="0.05" value="0.25">
-    </div>
-    <div class="slider-row">
-      <label>Cooldown (ms) <span id="cooldownVal">900</span></label>
-      <input type="range" id="sensCooldown" min="300" max="2000" step="100" value="900">
-    </div>
-
-    <div class="meta-row">
-      <div class="meta-item">
-        <div style="font-size:0.7rem;color:var(--text-muted)">FPS</div>
-        <div id="fpsCounter" style="font-weight:700;color:var(--success)">--</div>
+      <div class="camera-controls">
+        <button id="startCam" class="btn btn-primary">Start Camera</button>
+        <button id="stopCam" class="btn btn-danger" disabled>Stop Camera</button>
       </div>
-      <div class="meta-item">
-        <div style="font-size:0.7rem;color:var(--text-muted)">Presenter Timer</div>
-        <div id="timerDisplay" style="font-weight:700;color:var(--primary)">00:00</div>
-      </div>
-    </div>
+      <div id="cameraError" style="color:var(--danger);font-size:0.85rem;display:none;"></div>
 
-    <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
-      <button id="demoBtn" class="btn btn-ghost" style="flex:1">Demo Mode</button>
-      <button id="tutorialBtn" class="btn btn-ghost" style="flex:1">Tutorial</button>
-      <button id="fullscreenBtn" class="btn btn-ghost" style="flex:1">Fullscreen</button>
-    </div>
-    <div style="margin-top:0.5rem;display:flex;gap:0.5rem;">
-      <button id="timerBtn" class="btn btn-ghost" style="flex:1">Timer</button>
-      <button id="clearLogBtn" class="btn btn-ghost" style="flex:1">Clear Log</button>
+      <div class="hint hint-dark" id="hintDark">🌑 Too dark — improve lighting</div>
+      <div class="hint hint-far" id="hintFar">📉 Hand too far — move closer</div>
+      <div class="hint hint-edge" id="hintEdge">⚠️ Hand partly out of frame</div>
+
+      <div class="slider-row">
+        <label>Swipe Distance <span id="swipeVal">0.25</span></label>
+        <input type="range" id="sensSwipe" min="0.15" max="0.45" step="0.05" value="0.25">
+      </div>
+      <div class="slider-row">
+        <label>Stability Frames <span id="stabVal">3</span></label>
+        <input type="range" id="sensStab" min="2" max="8" step="1" value="3">
+      </div>
+
+      <div class="calibrate-box">
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;">Calibrate (2s each)</div>
+        <button id="calibrateBtn" class="btn btn-outline" style="width:100%;">Calibrate Open Palm & Fist</button>
+        <div id="calibStatus" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.4rem;"></div>
+      </div>
     </div>
   </section>
 
-  <!-- Content Panel -->
-  <section class="content-panel">
-    <div class="content-wrap">
-      <canvas id="laserCanvas"></canvas>
-      <div class="slides-container" id="slidesContainer"></div>
+  <!-- Slides Panel -->
+  <section class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Presentation</span>
+    </div>
+    <div class="panel-body">
+      <div class="slides-wrap">
+        <div id="slides"></div>
+      </div>
       <div class="page-nav">
-        <button id="prevPage" class="nav-btn" disabled>&#9664;</button>
-        <div class="page-counter" id="pageCounter">Slide 1 / 10</div>
-        <button id="nextPage" class="nav-btn">&#9654;</button>
+        <button id="prevBtn" class="nav-btn" disabled>&#9664;</button>
+        <div class="page-counter" id="pageCounter">Slide 1 / 6</div>
+        <button id="nextBtn" class="nav-btn">&#9654;</button>
       </div>
     </div>
   </section>
 
-  <!-- Status Panel -->
-  <section class="status-panel">
+  <!-- Status / Debug Panel -->
+  <section class="panel">
     <div class="panel-header">
       <span class="panel-title">System Status</span>
+      <button id="toggleDebug" class="btn btn-outline" style="padding:0.4rem 0.8rem;font-size:0.75rem;">Toggle Debug (D)</button>
     </div>
-    <div class="status-content">
-      <div class="status-item">
-        <span class="status-label">Detected Gesture</span>
-        <span id="gestureText" class="status-value">—</span>
+    <div class="panel-body">
+      <div class="status-grid">
+        <div class="status-item"><span class="status-label">Mode</span><span id="statusMode" class="status-value">Stopped</span></div>
+        <div class="status-item"><span class="status-label">Gesture</span><span id="statusGesture" class="status-value">—</span></div>
+        <div class="status-item"><span class="status-label">Hand</span><span id="statusHand" class="status-value">—</span></div>
+        <div class="status-item"><span class="status-label">Handedness</span><span id="statusHandedness" class="status-value">—</span></div>
+        <div class="status-item"><span class="status-label">Fingers [T,I,M,R,L]</span><span id="statusFingers" class="status-value">0,0,0,0,0</span></div>
+        <div class="status-item"><span class="status-label">Hand Size</span><span id="statusHandSize" class="status-value">—</span></div>
+        <div class="status-item"><span class="status-label">Swipe dx/dy</span><span id="statusSwipe" class="status-value">0,0</span></div>
+        <div class="status-item"><span class="status-label">Reject Reason</span><span id="statusReject" class="status-value">—</span></div>
       </div>
-      <div class="status-item">
-        <span class="status-label">Control Mode</span>
-        <span id="modeText" class="status-value mode-active">Active</span>
+      <div id="debugPanel">
+        <div class="debug-row"><span>FPS:</span><span id="dbgFPS">--</span></div>
+        <div class="debug-row"><span>Handedness:</span><span id="dbgHanded">--</span></div>
+        <div class="debug-row"><span>Fingers:</span><span id="dbgFingers">[0,0,0,0,0]</span></div>
+        <div class="debug-row"><span>Hand Size:</span><span id="dbgHandSize">--</span></div>
+        <div class="debug-row"><span>Swipe dx/dy:</span><span id="dbgSwipe">0.00,0.00</span></div>
+        <div class="debug-row"><span>Speed (u/s):</span><span id="dbgSpeed">--</span></div>
+        <div class="debug-row"><span>Stable Gesture:</span><span id="dbgStable">—</span></div>
+        <div class="debug-row"><span>Rejected:</span><span id="dbgReject">—</span></div>
+        <div class="debug-row"><span>Calibrated:</span><span id="dbgCalib">No</span></div>
       </div>
-      <div class="status-item">
-        <span class="status-label">Hand Detected</span>
-        <span id="handText" class="status-value">No</span>
-      </div>
-      <div class="progress-ring-wrapper">
-        <div id="progressRing" class="progress-ring"></div>
-        <div id="progressText" class="progress-ring-inner">0%</div>
-      </div>
-      <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.5rem;">Gesture Log</div>
-      <div class="gesture-log" id="gestureLog"></div>
-    </div>
-
-    <div class="gesture-legend">
-      <h4>Gesture Library</h4>
-      <ul class="legend-list">
-        <li class="legend-item">
-          <span class="legend-icon swipe">👉</span>
-          <span>Point (Index)</span>
-          <span class="legend-arrow">→ Laser Dot</span>
-        </li>
-        <li class="legend-item">
-          <span class="legend-icon swipe">🤏</span>
-          <span>Pinch (Thumb+Index)</span>
-          <span class="legend-arrow">→ Click</span>
-        </li>
-        <li class="legend-item">
-          <span class="legend-icon swipe">✌️</span>
-          <span>Two Fingers</span>
-          <span class="legend-arrow">→ Scroll</span>
-        </li>
-        <li class="legend-item">
-          <span class="legend-icon fist">👍</span>
-          <span>Thumbs Up</span>
-          <span class="legend-arrow">→ Like</span>
-        </li>
-        <li class="legend-item">
-          <span class="legend-icon swipe">👋</span>
-          <span>Open Palm 1.5s</span>
-          <span class="legend-arrow">→ Go to Slide 1</span>
-        </li>
-        <li class="legend-item">
-          <span class="legend-icon fist">✊</span>
-          <span>Closed Fist 0.3s</span>
-          <span class="legend-arrow">→ Pause</span>
-        </li>
-        <li class="legend-item">
-          <span class="legend-icon swipe">🖐</span>
-          <span>Open Palm 0.3s</span>
-          <span class="legend-arrow">→ Resume / Next</span>
-        </li>
-        <li class="legend-item">
-          <span class="legend-icon swipe">👉👈</span>
-          <span>Swipe Left/Right</span>
-          <span class="legend-arrow">→ Prev / Next Slide</span>
-        </li>
-      </ul>
     </div>
   </section>
 </main>
 
 <footer>
   <div class="container">
-    <p>&copy; 2026 Gesture-Controlled Website | CSE (Cyber Security) | Built with MediaPipe Hands | Local Processing Only</p>
+    <p>Gesture-Controlled Website • MediaPipe Hands • Local Processing Only • Arrow keys: ← →</p>
   </div>
 </footer>
 
-<!-- Tutorial Overlay -->
-<div id="tutorialOverlay" class="overlay">
-  <div class="overlay-card">
-    <h2>🎓 Guided Tutorial (30s)</h2>
-    <p id="tutorialCaption">Try each gesture below. The system will auto-advance.</p>
-    <div class="countdown" id="tutorialTimer">30</div>
-    <div id="tutorialSteps"></div>
-    <div style="margin-top:1rem;">
-      <button id="skipTutorial" class="btn btn-ghost">Skip</button>
-    </div>
-  </div>
-</div>
-
-<!-- Demo Mode Caption -->
-<div id="demoCaption" style="
-  position:fixed; bottom:2rem; left:50%; transform:translateX(-50%);
-  background:var(--surface); border:1px solid var(--border); color:var(--text);
-  padding:0.75rem 1.5rem; border-radius:20px; font-size:0.9rem; z-index:60;
-  display:none; box-shadow:var(--shadow-lg);
-"></div>
-
 <script>
 /* ============================================================
-   CONFIGURATION (tune these constants)
+   CONFIGURATION (tune at top)
    ============================================================ */
 const CONFIG = {
-  SWIPE_DIST: 0.25,          // min palm travel (fraction of frame width)
-  SWIPE_WINDOW: 400,         // ms of hand history examined
-  COOLDOWN: 900,             // ms ignored after each accepted swipe
-  HOLD_CONFIRM_MS: 300,      // ms to confirm fist/palm
-  OPEN_PALM_HOME_MS: 1500,   // ms open palm to go to slide 1
-  PINCH_DIST: 0.05,          // normalized distance for thumb-index pinch
-  SMOOTH_WINDOW: 5,          // frames for moving-average smoothing
-  DETECTION_CONFIDENCE: 0.7,
-  TRACKING_CONFIDENCE: 0.7,
-  MAX_NUM_HANDS: 1,
-  TIPS: [8, 12, 16, 20],
-  PIPS: [6, 10, 14, 18],
-  THUMB_TIP: 4,
-  THUMB_IP: 2,
-  PALM_LANDMARK: 9
+  // MediaPipe
+  detectionConfidence: 0.6,
+  trackingConfidence: 0.6,
+  modelComplexity: 1,
+  maxNumHands: 1,
+
+  // Gesture thresholds (calibration may override)
+  swipeDist: 0.25,           // fraction of normalized hand size
+  cooldownMs: 800,
+  holdConfirmFrames: 3,      // consecutive frames required
+  holdConfirmMs: 250,        // OR time stability (ms)
+  fingerRatioThreshold: 1.08, // dist(wrist,tip) / dist(wrist,pip) > this = extended
+
+  // Smoothing
+  smoothWindow: 5,
+
+  // Hints
+  minHandSize: 0.12,         // normalized wrist->middle MCP, below = too far
+  edgeMargin: 0.05,          // landmark within 5% of edge = partly out of frame
+  darkThreshold: 60,         // average brightness below = too dark
 };
 
 const SLIDES = [
-  { icon: "👋", title: "Welcome", content: "Experience touchless control with real-time hand tracking. Navigate this website using natural hand gestures — no mouse or keyboard required." },
-  { icon: "🎯", title: "What is Touchless Tech?", content: "Touchless interaction removes the need for physical contact. The computer observes the user through a camera and responds to natural hand movements." },
-  { icon: "🏥", title: "Healthcare", content: "Hospitals and clinics use touchless kiosks to reduce surface contact, helping limit the spread of germs in high-traffic medical environments." },
-  { icon: "🍳", title: "Kitchens & Food", content: "Cooks with wet, dirty, or gloved hands can follow recipes or control displays without touching shared screens." },
-  { icon: "🏢", title: "Public Kiosks", content: "Airports, malls, and museums deploy touchless interfaces so visitors can access information hygienically." },
-  { icon: "♿", title: "Accessibility", content: "Users with limited mobility or fine motor control benefit from large, gesture-based controls instead of small buttons." },
-  { icon: "🤖", title: "How MediaPipe Works", content: "MediaPipe Hands detects 21 landmarks per frame using a palm detector followed by a hand landmark model — all running in-browser via WebAssembly." },
-  { icon: "📋", title: "Gesture Library", content: "Point → Laser, Pinch → Click, Two Fingers → Scroll, Thumbs Up → Like, Fist → Pause, Palm → Resume, Swipe → Slide." },
-  { icon: "🔒", title: "Privacy & Security", content: "All video frames are processed locally in your browser. No image or landmark data is uploaded or stored on any server." },
-  { icon: "❓", title: "LIVE QUIZ", content: "Which application benefits MOST from touchless control in a hospital?" }
+  { icon: "👋", title: "Welcome", content: "Touchless control using real-time hand tracking. Navigate with hand gestures — no mouse or keyboard required." },
+  { icon: "🎯", title: "Pointing", content: "Point your index finger to show a laser dot on the current slide." },
+  { icon: "🤏", title: "Pinch", content: "Pinch thumb + index finger to click or select on-screen buttons." },
+  { icon: "✌️", title: "Two Fingers", content: "Hold index and middle finger up to scroll or pan." },
+  { icon: "👍", title: "Thumbs Up", content: "Give a thumbs-up to send a like / acknowledgment." },
+  { icon: "❓", title: "Quiz", content: "Final slide: answer using gestures. Fist = confirm selection." }
 ];
-
-const QUIZ = {
-  question: "Which application benefits MOST from touchless control in a hospital?",
-  options: ["A) Patient check-in kiosks", "B) Operating room lights", "C) Both A and B"],
-  answer: 2  // index of correct option (0-based)
-};
 
 /* ============================================================
    STATE
@@ -864,856 +268,544 @@ const state = {
   paused: false,
   lastSwipe: 0,
   trail: [],
-  totalSlides: SLIDES.length,
   mediapipeReady: false,
   cameraActive: false,
   hands: null,
   camera: null,
-  demoMode: false,
-  tutorialActive: false,
-  tutorialStep: 0,
-  tutorialTimer: 30,
-  timerRunning: false,
-  timerSeconds: 0,
-  timerInterval: null,
-  quizAnswered: false,
-  quizSelected: null,
+  debug: false,
 
-  // Gesture hold state
-  holdPose: null,
-  holdStart: 0,
-  openPalmStart: 0,
+  // Calibration
+  calibrated: false,
+  calibOpenPalmAvg: null,
+  calibFistAvg: null,
+  calibHandSize: null,
+  calibrating: false,
+  calibSamples: [],
+  calibStep: 0,
+  calibStartTime: 0,
+
+  // Stability
+  stablePose: null,
+  stableCount: 0,
+  stableStartTime: 0,
 
   // Smoothing
-  landmarkHistory: [],
-
-  // Audio
-  audioCtx: null,
-
-  // Laser pointer
-  laserX: 0,
-  laserY: 0,
-  laserVisible: false,
-
-  // Log
-  logEntries: []
+  history: [],
 };
 
 const videoEl = document.getElementById('video');
 const overlayCanvas = document.getElementById('overlay');
 const ctx = overlayCanvas.getContext('2d');
-const laserCanvas = document.getElementById('laserCanvas');
-const laserCtx = laserCanvas.getContext('2d');
 
-const camEmpty = document.getElementById('camEmpty');
-const emptyTitle = document.getElementById('emptyTitle');
-const emptySub = document.getElementById('emptySub');
-const cameraError = document.getElementById('cameraError');
-const handWarning = document.getElementById('handWarning');
-const debugInfo = document.getElementById('debugInfo');
 const startBtn = document.getElementById('startCam');
 const stopBtn = document.getElementById('stopCam');
-const prevBtn = document.getElementById('prevPage');
-const nextBtn = document.getElementById('nextPage');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
 const pageCounter = document.getElementById('pageCounter');
-const slidesContainer = document.getElementById('slidesContainer');
-const gestureText = document.getElementById('gestureText');
-const modeText = document.getElementById('modeText');
-const handText = document.getElementById('handText');
-const statusText = document.getElementById('statusText');
-const statusDot = document.getElementById('statusDot');
-const progressRing = document.getElementById('progressRing');
-const progressText = document.getElementById('progressText');
-const gestureLog = document.getElementById('gestureLog');
-const fpsCounter = document.getElementById('fpsCounter');
-const timerDisplay = document.getElementById('timerDisplay');
-const swipeVal = document.getElementById('swipeVal');
-const cooldownVal = document.getElementById('cooldownVal');
-const sensSwipe = document.getElementById('sensSwipe');
-const sensCooldown = document.getElementById('sensCooldown');
+const slidesContainer = document.getElementById('slides');
+const statusMode = document.getElementById('statusMode');
+const statusGesture = document.getElementById('statusGesture');
+const statusHand = document.getElementById('statusHand');
+const statusHandedness = document.getElementById('statusHandedness');
+const statusFingers = document.getElementById('statusFingers');
+const statusHandSize = document.getElementById('statusHandSize');
+const statusSwipe = document.getElementById('statusSwipe');
+const statusReject = document.getElementById('statusReject');
+const fpsBadge = document.getElementById('fpsBadge');
+const cameraError = document.getElementById('cameraError');
 
-const tutorialOverlay = document.getElementById('tutorialOverlay');
-const tutorialCaption = document.getElementById('tutorialCaption');
-const tutorialTimer = document.getElementById('tutorialTimer');
-const tutorialSteps = document.getElementById('tutorialSteps');
-const skipTutorial = document.getElementById('skipTutorial');
-const demoCaption = document.getElementById('demoCaption');
-const fullscreenHint = document.getElementById('fullscreenHint');
+const hintDark = document.getElementById('hintDark');
+const hintFar = document.getElementById('hintFar');
+const hintEdge = document.getElementById('hintEdge');
+const canvasHint = document.getElementById('canvasHint');
+
+const sensSwipe = document.getElementById('sensSwipe');
+const swipeVal = document.getElementById('swipeVal');
+const sensStab = document.getElementById('sensStab');
+const stabVal = document.getElementById('stabVal');
+const calibrateBtn = document.getElementById('calibrateBtn');
+const calibStatus = document.getElementById('calibStatus');
+
+const dbgFPS = document.getElementById('dbgFPS');
+const dbgHanded = document.getElementById('dbgHanded');
+const dbgFingers = document.getElementById('dbgFingers');
+const dbgHandSize = document.getElementById('dbgHandSize');
+const dbgSwipe = document.getElementById('dbgSwipe');
+const dbgSpeed = document.getElementById('dbgSpeed');
+const dbgStable = document.getElementById('dbgStable');
+const dbgReject = document.getElementById('dbgReject');
+const dbgCalib = document.getElementById('dbgCalib');
 
 /* ============================================================
    UTILS
    ============================================================ */
-function log(msg) {
-  console.log('[Gesture]', msg);
-  if (debugInfo.style.display !== 'none') {
-    debugInfo.textContent += new Date().toLocaleTimeString() + ': ' + msg + '\n';
-    debugInfo.scrollTop = debugInfo.scrollHeight;
-  }
+function dist(p1, p2) { return Math.hypot(p1.x - p2.x, p1.y - p2.y); }
+function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
+function log(msg) { console.log('[Gesture]', msg); }
+function setStatus(el, text, cls) {
+  el.textContent = text;
+  el.className = 'status-value ' + (cls || '');
 }
-
-function addLogEntry(gesture) {
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  state.logEntries.unshift({ time: timeStr, gesture });
-  if (state.logEntries.length > 12) state.logEntries.pop();
-  renderLog();
-}
-
-function renderLog() {
-  gestureLog.innerHTML = state.logEntries.map(e => `<div class="log-entry">[${e.time}] ${e.gesture}</div>`).join('');
-}
-
-function clearLog() {
-  state.logEntries = [];
-  renderLog();
-}
-
-function playTone(freq, duration = 0.1) {
-  try {
-    if (!state.audioCtx) {
-      state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
-    const osc = state.audioCtx.createOscillator();
-    const gain = state.audioCtx.createGain();
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.08, state.audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(state.audioCtx.destination);
-    osc.start();
-    osc.stop(state.audioCtx.currentTime + duration);
-  } catch (e) { /* audio may be blocked */ }
-}
-
 function showCameraError(msg) {
   cameraError.style.display = 'block';
   cameraError.textContent = '⚠️ ' + msg;
-  updateSystemStatus('error', 'Error');
-  log('ERROR: ' + msg);
-}
-function hideCameraError() { cameraError.style.display = 'none'; }
-
-function updateSystemStatus(status, text) {
-  statusText.textContent = text;
-  const dot = statusDot;
-  dot.style.boxShadow = 'none';
-  if (status === 'active') { dot.style.background = 'var(--success)'; dot.style.boxShadow = '0 0 8px var(--success)'; }
-  else if (status === 'paused') { dot.style.background = 'var(--warning)'; dot.style.boxShadow = '0 0 8px var(--warning)'; }
-  else if (status === 'demo') { dot.style.background = 'var(--info)'; dot.style.boxShadow = '0 0 8px var(--info)'; }
-  else if (status === 'error') { dot.style.background = 'var(--danger)'; dot.style.boxShadow = '0 0 8px var(--danger)'; }
-  else { dot.style.background = 'var(--text-muted)'; }
-}
-
-function updateStatusPanel(gesture, mode, hand) {
-  gestureText.textContent = gesture;
-  modeText.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
-  modeText.className = 'status-value mode-' + mode;
-  handText.textContent = hand;
 }
 
 /* ============================================================
    SLIDES
    ============================================================ */
 function renderSlides() {
-  slidesContainer.innerHTML = SLIDES.map((slide, i) => {
-    let extra = '';
-    if (i === SLIDES.length - 1) {
-      // Quiz slide
-      extra = `
-        <div class="quiz-options">
-          ${QUIZ.options.map((opt, oi) => `
-            <div class="quiz-option" id="quizOpt-${oi}" data-idx="${oi}">
-              <div class="quiz-letter">${String.fromCharCode(65 + oi)}</div>
-              <div>${opt}</div>
-            </div>`).join('')}
-        </div>
-        <div class="quiz-result" id="quizResult"></div>
-      `;
-    }
-    return `
-      <div class="slide${i === 0 ? ' active' : ''}" id="slide-${i}">
-        <div class="slide-icon">${slide.icon}</div>
-        <div class="slide-content">
-          <h2>${slide.title}</h2>
-          <p>${slide.content}</p>
-          ${extra}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function renderSlide(index) {
-  state.index = Math.max(0, Math.min(SLIDES.length - 1, index));
-  const slides = document.querySelectorAll('.slide');
-  slides.forEach((s, i) => {
-    s.classList.remove('active', 'exit', 'fade-in');
-    if (i === state.index) {
-      s.classList.add('active', 'fade-in');
-      setTimeout(() => s.classList.remove('fade-in'), 500);
-    }
-  });
-  pageCounter.textContent = `Slide ${state.index + 1} / ${SLIDES.length}`;
-
-  // Quiz UI reset
-  if (state.index === SLIDES.length - 1) {
-    document.querySelectorAll('.quiz-option').forEach(el => {
-      el.classList.remove('highlighted', 'selected', 'correct', 'wrong');
-      el.style.cursor = 'pointer';
-    });
-    document.getElementById('quizResult').textContent = '';
-    state.quizAnswered = false;
-    state.quizSelected = null;
-  }
-
-  // Reset laser
-  state.laserVisible = false;
-  laserCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
-}
-
-function goToSlide(index) {
-  renderSlide(index);
-  addLogEntry(index === SLIDES.length - 1 ? 'Quiz Slide' : `Slide ${index + 1}`);
-}
-
-prevBtn.addEventListener('click', () => goToSlide(state.index - 1));
-nextBtn.addEventListener('click', () => goToSlide(state.index + 1));
-
-// Quiz interaction via swipe highlight + fist confirm
-document.addEventListener('click', (e) => {
-  if (state.index === SLIDES.length - 1 && !state.quizAnswered) {
-    const opt = e.target.closest('.quiz-option');
-    if (opt) {
-      const idx = parseInt(opt.dataset.idx);
-      document.querySelectorAll('.quiz-option').forEach(el => el.classList.remove('highlighted'));
-      opt.classList.add('highlighted');
-      state.quizSelected = idx;
-    }
-  }
-});
-
-/* ============================================================
-   KEYBOARD FALLBACK
-   ============================================================ */
-document.addEventListener('keydown', (e) => {
-  if (state.demoMode || state.tutorialActive) return;
-  if (e.key === 'ArrowRight') { e.preventDefault(); goToSlide(state.index + 1); }
-  if (e.key === 'ArrowLeft') { e.preventDefault(); goToSlide(state.index - 1); }
-  if (e.key === 'd' || e.key === 'D') {
-    debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
-  }
-});
-
-/* ============================================================
-   TIMER & DEMO & TUTORIAL
-   ============================================================ */
-function startTimer() {
-  if (state.timerInterval) return;
-  state.timerRunning = true;
-  state.timerInterval = setInterval(() => {
-    state.timerSeconds++;
-    const m = Math.floor(state.timerSeconds / 60).toString().padStart(2, '0');
-    const s = (state.timerSeconds % 60).toString().padStart(2, '0');
-    timerDisplay.textContent = m + ':' + s;
-  }, 1000);
-}
-function stopTimer() {
-  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-  state.timerRunning = false;
-}
-function resetTimer() {
-  stopTimer();
-  state.timerSeconds = 0;
-  timerDisplay.textContent = '00:00';
-}
-
-document.getElementById('timerBtn').addEventListener('click', () => {
-  if (state.timerRunning) stopTimer(); else startTimer();
-});
-document.getElementById('clearLogBtn').addEventListener('click', clearLog);
-
-// Fullscreen
-document.getElementById('fullscreenBtn').addEventListener('click', () => {
-  const el = document.documentElement;
-  if (el.requestFullscreen) el.requestFullscreen();
-  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-});
-document.getElementById('fullscreenHint').style.display = 'block';
-setTimeout(() => { fullscreenHint.style.display = 'none'; }, 5000);
-
-// Demo mode
-const DEMO_SEQUENCE = [
-  { gesture: 'open', caption: 'Open Palm → Resume', duration: 2500 },
-  { gesture: 'swipeRight', caption: 'Swipe Right → Next Slide', duration: 3000 },
-  { gesture: 'swipeLeft', caption: 'Swipe Left → Previous Slide', duration: 3000 },
-  { gesture: 'fist', caption: 'Closed Fist → Pause', duration: 2500 },
-  { gesture: 'point', caption: 'Pointing → Laser Dot', duration: 2500 },
-  { gesture: 'pinch', caption: 'Pinch → Click', duration: 2500 },
-  { gesture: 'thumbsup', caption: 'Thumbs Up → Like', duration: 2500 },
-  { gesture: 'twoFingers', caption: 'Two Fingers → Scroll', duration: 2500 }
-];
-let demoIdx = 0;
-let demoTimer = null;
-
-function startDemoMode() {
-  state.demoMode = true;
-  state.cameraActive = false;
-  startBtn.disabled = true;
-  stopBtn.disabled = true;
-  camEmpty.style.display = 'flex';
-  videoEl.style.display = 'none';
-  overlayCanvas.style.display = 'none';
-  updateSystemStatus('demo', 'Demo Mode');
-  updateStatusPanel('Demo', 'demo', 'Yes');
-  document.getElementById('demoBtn').textContent = 'Exit Demo';
-  runDemoStep();
-}
-
-function stopDemoMode() {
-  state.demoMode = false;
-  demoIdx = 0;
-  if (demoTimer) clearTimeout(demoTimer);
-  document.getElementById('demoBtn').textContent = 'Demo Mode';
-  updateSystemStatus('stopped', 'Stopped');
-  updateStatusPanel('—', 'stopped', 'No');
-  demoCaption.style.display = 'none';
-  ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-  laserCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
-}
-
-function runDemoStep() {
-  if (!state.demoMode) return;
-  const step = DEMO_SEQUENCE[demoIdx];
-  demoCaption.textContent = step.caption;
-  demoCaption.style.display = 'block';
-  // Draw a simulated hand at center
-  drawSimulatedHand(step.gesture);
-  demoTimer = setTimeout(() => {
-    demoCaption.style.display = 'none';
-    demoIdx = (demoIdx + 1) % DEMO_SEQUENCE.length;
-    runDemoStep();
-  }, step.duration);
-}
-
-function drawSimulatedHand(gesture) {
-  ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-  const cx = overlayCanvas.width / 2;
-  const cy = overlayCanvas.height / 2;
-  const scale = 120;
-  // Simple simulated skeleton based on gesture
-  const points = [];
-  // wrist
-  points.push({ x: cx / overlayCanvas.width, y: cy / overlayCanvas.height });
-  // base points rough circle around wrist
-  for (let i = 1; i < 21; i++) {
-    const angle = (i / 20) * Math.PI * 2;
-    points.push({ x: cx / overlayCanvas.width + Math.cos(angle) * 0.15, y: cy / overlayCanvas.height + Math.sin(angle) * 0.15 });
-  }
-  // Modify for gestures
-  if (gesture === 'open') {
-    for (let i = 8; i <= 20; i++) points[i].y -= 0.15;
-  }
-  if (gesture === 'fist') {
-    for (let i = 1; i < 21; i++) points[i].y += 0.05;
-  }
-  if (gesture === 'point') {
-    points[8].y -= 0.2; // index up
-  }
-  if (gesture === 'pinch') {
-    points[4].x = points[8].x - 0.01; points[4].y = points[8].y - 0.01;
-  }
-  if (gesture === 'thumbsup') {
-    points[4].y -= 0.2;
-  }
-  drawConnectors(ctx, points, HAND_CONNECTIONS, { color: '#ffffff', lineWidth: 2 });
-  drawLandmarks(ctx, points, { color: '#f59e0b', lineWidth: 2, radius: 4 });
-}
-
-// Tutorial
-const TUTORIAL_STEPS_DATA = [
-  { caption: "Show an open palm to resume", gesture: 'open', done: false },
-  { caption: "Make a closed fist to pause", gesture: 'fist', done: false },
-  { caption: "Swipe your open palm right", gesture: 'swipeRight', done: false },
-  { caption: "Swipe your open palm left", gesture: 'swipeLeft', done: false },
-  { caption: "Point your index finger", gesture: 'point', done: false }
-];
-
-function startTutorial() {
-  state.tutorialActive = true;
-  state.demoMode = false;
-  document.getElementById('demoBtn').textContent = 'Demo Mode';
-  demoCaption.style.display = 'none';
-  stopDemoMode();
-  tutorialOverlay.classList.add('active');
-  state.tutorialStep = 0;
-  state.tutorialTimer = 30;
-  updateTutorialUI();
-  startTutorialCountdown();
-}
-
-function startTutorialCountdown() {
-  if (state.tutorialInterval) clearInterval(state.tutorialInterval);
-  state.tutorialInterval = setInterval(() => {
-    state.tutorialTimer--;
-    tutorialTimer.textContent = state.tutorialTimer;
-    if (state.tutorialTimer <= 0) {
-      endTutorial();
-    }
-  }, 1000);
-}
-
-function updateTutorialUI() {
-  tutorialSteps.innerHTML = TUTORIAL_STEPS_DATA.map((s, i) => `
-    <div class="tutorial-step ${s.done ? 'done' : ''}">
-      <span class="check">${s.done ? '✓' : '○'}</span>
-      <span class="caption">${s.caption}</span>
+  slidesContainer.innerHTML = SLIDES.map((s, i) => `
+    <div class="slide${i===0?' active':''}">
+      <div class="slide-icon">${s.icon}</div>
+      <h2>${s.title}</h2>
+      <p>${s.content}</p>
     </div>
   `).join('');
-  tutorialCaption.textContent = TUTORIAL_STEPS_DATA[state.tutorialStep] ? TUTORIAL_STEPS_DATA[state.tutorialStep].caption : 'Complete!';
 }
-
-function endTutorial() {
-  state.tutorialActive = false;
-  tutorialOverlay.classList.remove('active');
-  if (state.tutorialInterval) clearInterval(state.tutorialInterval);
-  log('Tutorial completed');
+function renderSlide(i) {
+  state.index = Math.max(0, Math.min(SLIDES.length - 1, i));
+  const slides = document.querySelectorAll('.slide');
+  slides.forEach((el, idx) => {
+    el.classList.remove('active', 'exit');
+    if (idx === state.index) el.classList.add('active');
+  });
+  pageCounter.textContent = `Slide ${state.index + 1} / ${SLIDES.length}`;
 }
-
-skipTutorial.addEventListener('click', endTutorial);
-document.getElementById('demoBtn').addEventListener('click', () => {
-  if (state.demoMode) stopDemoMode(); else startDemoMode();
-});
-document.getElementById('tutorialBtn').addEventListener('click', startTutorial);
-
-// Sensitivity sliders
-sensSwipe.addEventListener('input', () => {
-  CONFIG.SWIPE_DIST = parseFloat(sensSwipe.value);
-  swipeVal.textContent = CONFIG.SWIPE_DIST;
-});
-sensCooldown.addEventListener('input', () => {
-  CONFIG.COOLDOWN = parseInt(sensCooldown.value);
-  cooldownVal.textContent = CONFIG.COOLDOWN;
+prevBtn.addEventListener('click', () => renderSlide(state.index - 1));
+nextBtn.addEventListener('click', () => renderSlide(state.index + 1));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { e.preventDefault(); renderSlide(state.index + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); renderSlide(state.index - 1); }
+  if (e.key === 'd' || e.key === 'D') {
+    state.debug = !state.debug;
+    document.getElementById('debugPanel').classList.toggle('show', state.debug);
+  }
 });
 
 /* ============================================================
-   LANDMARK SMOOTHING
+   SMOOTHING
    ============================================================ */
-function smoothLandmarks(lm) {
-  state.landmarkHistory.push(lm);
-  if (state.landmarkHistory.length > CONFIG.SMOOTH_WINDOW) state.landmarkHistory.shift();
-  const smoothed = [];
+function smooth(lm) {
+  state.history.push(lm);
+  if (state.history.length > CONFIG.smoothWindow) state.history.shift();
+  const out = [];
   for (let i = 0; i < 21; i++) {
     let sx = 0, sy = 0;
-    for (const h of state.landmarkHistory) { sx += h[i].x; sy += h[i].y; }
-    smoothed.push({ x: sx / state.landmarkHistory.length, y: sy / state.landmarkHistory.length, z: lm[i].z });
+    for (const h of state.history) { sx += h[i].x; sy += h[i].y; }
+    out.push({ x: sx / state.history.length, y: sy / state.history.length, z: lm[i].z });
   }
-  return smoothed;
+  return out;
 }
 
 /* ============================================================
-   GESTURE DETECTION
+   GESTURE LOGIC
    ============================================================ */
-function countFingersUp(lm) {
-  return CONFIG.TIPS.filter((tip, i) => lm[tip].y < lm[CONFIG.PIPS[i]].y).length;
+function getHandSize(lm) {
+  // wrist (0) to middle finger MCP (9) — scale invariant
+  return dist(lm[0], lm[9]);
 }
 
-function isThumbUp(lm, handedness) {
-  // Thumb extended outward depending on hand orientation
-  if (handedness === 'Right') return lm[CONFIG.THUMB_TIP].x < lm[CONFIG.THUMB_IP].x;
-  return lm[CONFIG.THUMB_TIP].x > lm[CONFIG.THUMB_IP].x;
-}
-
-function getPinchDist(lm) {
-  const t = lm[4], i = lm[8];
-  return Math.hypot(t.x - i.x, t.y - i.y);
-}
-
-function classifyPose(lm, handedness) {
-  const nUp = countFingersUp(lm);
-  const thumb = isThumbUp(lm, handedness);
-  const pinch = getPinchDist(lm) < CONFIG.PINCH_DIST;
-
-  if (nUp === 0 && !thumb) return 'fist';
-  if (nUp === 1 && lm[8].y < lm[6].y && !thumb && !pinch) return 'point'; // only index up
-  if (nUp >= 1 && nUp <= 2 && pinch) return 'pinch';
-  if (nUp === 2 && !thumb && !pinch) return 'twoFingers';
-  if (thumb && nUp === 0) return 'thumbsUp';
-  if (nUp === 4) return 'open';
-  return 'other';
-}
-
-let lastFrameTime = 0;
-function updateFPS(now) {
-  if (lastFrameTime) {
-    const fps = Math.round(1000 / (now - lastFrameTime));
-    fpsCounter.textContent = fps;
+function getFingerStates(lm) {
+  const wrist = lm[0];
+  const tips = [4, 8, 12, 16, 20];        // thumb, index, middle, ring, little
+  const pips = [2, 6, 10, 14, 18];
+  const states = [];
+  for (let i = 0; i < 5; i++) {
+    const dTip = dist(wrist, lm[tips[i]]);
+    const dRef = dist(wrist, lm[pips[i]]);
+    // Rotation-independent radial test: extended fingertip is farther from wrist than its PIP joint
+    states.push(dTip > dRef * CONFIG.fingerRatioThreshold ? 1 : 0);
   }
-  lastFrameTime = now;
+  return states; // [thumb, index, middle, ring, little]
 }
 
-/* ============================================================
-   MEDIAPIPE CALLBACK
-   ============================================================ */
-function onResults(results) {
-  if (!state.cameraActive || !state.mediapipeReady) return;
+function classify(lm, handedness) {
+  const fs = getFingerStates(lm);
+  const [thumb, index, middle, ring, little] = fs;
+  const nUp = index + middle + ring + little;
 
-  const now = performance.now();
-  updateFPS(now);
-
-  ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-  laserCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
-
-  const lmRaw = results.multiHandLandmarks && results.multiHandLandmarks[0];
-  const handedness = results.multiHandedness && results.multiHandedness[0] ? results.multiHandedness[0].label : 'Right';
-
-  if (!lmRaw) {
-    state.landmarkHistory = [];
-    state.holdPose = null;
-    state.holdStart = 0;
-    state.openPalmStart = 0;
-    state.laserVisible = false;
-    updateStatusPanel('No hand', 'active', 'No');
-    handWarning.style.display = 'block';
-    handWarning.textContent = '⚠️ Move your hand into the frame';
-    return;
-  }
-  handWarning.style.display = 'none';
-
-  const lm = smoothLandmarks(lmRaw);
-
-  // Draw skeleton
-  drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: '#ffffff', lineWidth: 2 });
-  drawLandmarks(ctx, lm, { color: '#f59e0b', lineWidth: 2, radius: 4 });
-
-  const pose = classifyPose(lm, handedness);
-
-  // ---- Hold-to-confirm logic ----
-  let confirmed = null;
-  if (pose === 'fist' || pose === 'open') {
-    if (state.holdPose === pose) {
-      const held = now - state.holdStart;
-      if (held >= CONFIG.HOLD_CONFIRM_MS) confirmed = pose;
-      // progress ring
-      const pct = Math.min(100, (held / CONFIG.HOLD_CONFIRM_MS) * 100);
-      progressRing.style.display = 'block';
-      progressRing.style.transform = `rotate(${-90 + (pct / 100) * 360}deg)`;
-      progressText.textContent = pct + '%';
-    } else {
-      state.holdPose = pose;
-      state.holdStart = now;
-      progressRing.style.display = 'none';
-    }
-  } else {
-    state.holdPose = null;
-    state.holdStart = 0;
-    progressRing.style.display = 'none';
-  }
-
-  // ---- Open palm 1.5s -> slide 1 ----
-  if (pose === 'open') {
-    if (state.openPalmStart === 0) state.openPalmStart = now;
-    const held = now - state.openPalmStart;
-    if (held >= CONFIG.OPEN_PALM_HOME_MS) {
-      goToSlide(0);
-      state.openPalmStart = 0;
-      addLogEntry('Open Palm Hold → Home');
-      playTone(600, 0.15);
-      updateStatusPanel('🏠 Home', 'active', 'Yes');
-      return;
-    }
-  } else {
-    state.openPalmStart = 0;
-  }
-
-  // ---- Tutorial auto-check ----
-  if (state.tutorialActive && state.tutorialStep < TUTORIAL_STEPS_DATA.length) {
-    const target = TUTORIAL_STEPS_DATA[state.tutorialStep].gesture;
-    if (pose === target || (target === 'swipeRight' && false)) { // swipes handled separately
-      TUTORIAL_STEPS_DATA[state.tutorialStep].done = true;
-      updateTutorialUI();
-      state.tutorialStep++;
-      addLogEntry('Tutorial: ' + target);
-      playTone(800, 0.1);
-      if (state.tutorialStep >= TUTORIAL_STEPS_DATA.length) {
-        setTimeout(endTutorial, 800);
-      }
-    }
-  }
-
-  // ---- Gesture actions (only if confirmed or instant gestures) ----
-  if (!state.paused && !state.demoMode && !state.tutorialActive) {
-    // Instant gestures
-    if (pose === 'pinch') {
-      playTone(1000, 0.05);
-      addLogEntry('Pinch → Click');
-      updateStatusPanel('🤏 Pinch (Click)', 'active', 'Yes');
-      // visual click ripple at index fingertip
-      drawLaserDot(lm[8].x, lm[8].y, true);
-      return;
-    }
-    if (pose === 'point') {
-      state.laserVisible = true;
-      state.laserX = lm[8].x;
-      state.laserY = lm[8].y;
-      drawLaserDot(state.laserX, state.laserY, false);
-      updateStatusPanel('👉 Point → Laser', 'active', 'Yes');
-      return;
-    }
-    if (pose === 'twoFingers') {
-      playTone(400, 0.05);
-      addLogEntry('Two Fingers → Scroll');
-      updateStatusPanel('✌️ Two Fingers → Scroll', 'active', 'Yes');
-      return;
-    }
-    if (pose === 'thumbsUp') {
-      playTone(700, 0.15);
-      addLogEntry('Thumbs Up → Like');
-      updateStatusPanel('👍 Thumbs Up → Like', 'active', 'Yes');
-      showLike(lm[4].x, lm[4].y);
-      return;
-    }
-
-    // Confirmed hold gestures
-    if (confirmed === 'fist') {
-      // Quiz slide: confirm answer instead of pausing
-      if (state.index === SLIDES.length - 1 && !state.quizAnswered) {
-        confirmQuiz();
-        state.holdPose = null;
-        state.holdStart = 0;
-        progressRing.style.display = 'none';
-        return;
-      }
-      state.paused = true;
-      state.trail = [];
-      updateSystemStatus('paused', 'Paused');
-      updateStatusPanel('✊ Fist (Paused)', 'paused', 'Yes');
-      playTone(200, 0.2);
-      addLogEntry('Fist → Pause');
-      state.holdPose = null;
-      state.holdStart = 0;
-      progressRing.style.display = 'none';
-      return;
-    }
-    if (confirmed === 'open') {
-      state.paused = false;
-      state.trail = [];
-      updateSystemStatus('active', 'Active');
-      updateStatusPanel('🖐 Open Palm → Resume', 'active', 'Yes');
-      playTone(900, 0.1);
-      addLogEntry('Open Palm → Resume');
-      state.holdPose = null;
-      state.holdStart = 0;
-      progressRing.style.display = 'none';
-      return;
-    }
-
-    // Swipe detection (only open palm, not paused)
-    if (pose === 'open') {
-      const swipe = detectSwipe(lm, now);
-      if (swipe) {
-        goToSlide(state.index + (swipe === 'Swipe Right' ? 1 : -1));
-        state.lastSwipe = now;
-        state.trail = [];
-        addLogEntry(swipe);
-        playTone(swipe === 'Swipe Right' ? 800 : 600, 0.1);
-        updateStatusPanel(swipe, 'active', 'Yes');
-        state.laserVisible = false;
-        laserCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
-        return;
-      }
-      updateStatusPanel('🖐 Open Palm', 'active', 'Yes');
-    } else {
-      updateStatusPanel(pose === 'fist' ? '✊ Fist' : '👋 Hand', 'active', 'Yes');
-    }
-  } else if (state.paused) {
-    updateStatusPanel('⏸ Paused — Show Open Palm', 'paused', 'Yes');
-  }
-
-  // Laser dot continuous draw
-  if (state.laserVisible && pose === 'point') {
-    drawLaserDot(state.laserX, state.laserY, false);
-  }
+  if (nUp === 0 && thumb === 0) return { pose: 'fist', fs };
+  if (nUp === 4) return { pose: 'open', fs };
+  if (nUp === 1 && index === 1) return { pose: 'point', fs };
+  if (thumb === 1 && nUp >= 1 && nUp <= 2 && dist(lm[4], lm[8]) < 0.05) return { pose: 'pinch', fs };
+  if (nUp === 2 && index === 1 && middle === 1) return { pose: 'twoFingers', fs };
+  if (thumb === 1 && nUp === 0) return { pose: 'thumbsUp', fs };
+  return { pose: 'other', fs };
 }
 
-function drawLaserDot(nx, ny, pulse) {
-  const cx = nx * laserCanvas.width;
-  const cy = ny * laserCanvas.height;
-  laserCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
-  laserCtx.beginPath();
-  laserCtx.arc(cx, cy, pulse ? 10 : 6, 0, Math.PI * 2);
-  laserCtx.fillStyle = pulse ? '#ef4444' : '#fbbf24';
-  laserCtx.fill();
-  laserCtx.shadowColor = '#fbbf24';
-  laserCtx.shadowBlur = pulse ? 20 : 10;
-}
-
-function showLike(nx, ny) {
-  const cx = nx * laserCanvas.width;
-  const cy = ny * laserCanvas.height;
-  const el = document.createElement('div');
-  el.className = 'like-float';
-  el.textContent = '❤️';
-  el.style.left = cx + 'px';
-  el.style.top = cy + 'px';
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1000);
-}
-
-/* ============================================================
-   SWIPE DETECTION
-   ============================================================ */
 function detectSwipe(lm, now) {
-  state.trail.push({ x: lm[CONFIG.PALM_LANDMARK].x, y: lm[CONFIG.PALM_LANDMARK].y, t: now });
-  state.trail = state.trail.filter(p => now - p.t <= CONFIG.SWIPE_WINDOW);
-  if (state.trail.length < 4 || now - state.lastSwipe < CONFIG.COOLDOWN) return null;
+  // Palm centre = landmark 9, recorded with timestamps (not frame count)
+  state.trail.push({ x: lm[9].x, y: lm[9].y, t: now });
+  state.trail = state.trail.filter(p => now - p.t <= 400);
+
+  if (state.trail.length < 4) return null;
+  if (now - state.lastSwipe < CONFIG.cooldownMs) return null;
+
   const a = state.trail[0];
   const b = state.trail[state.trail.length - 1];
-  const dx = -(b.x - a.x); // mirrored
+  const dt = (now - a.t) / 1000; // seconds
+  // Camera is mirrored (CSS scaleX(-1)), so flip x to match what the user sees
+  const dx = -(b.x - a.x);
   const dy = b.y - a.y;
-  if (Math.abs(dx) > CONFIG.SWIPE_DIST && Math.abs(dx) > 1.5 * Math.abs(dy)) {
-    return dx > 0 ? 'Swipe Right' : 'Swipe Left';
-  }
-  return null;
+  const speed = Math.hypot(dx, dy) / dt; // normalized units per second
+
+  if (Math.abs(dx) <= 1.5 * Math.abs(dy)) return null; // must be mostly horizontal
+
+  const hs = state.calibrated ? state.calibHandSize : getHandSize(lm);
+  const distThresh = CONFIG.swipeDist * hs;
+  if (Math.abs(dx) < distThresh) return null;
+  if (speed < 0.4) return null; // too slow
+
+  return dx > 0 ? 'Swipe Right' : 'Swipe Left';
 }
 
 /* ============================================================
-   QUIZ
+   HINTS (lighting / distance / frame edge)
    ============================================================ */
-function confirmQuiz() {
-  if (state.index !== SLIDES.length - 1 || state.quizAnswered || state.quizSelected === null) return;
-  state.quizAnswered = true;
-  const correct = QUIZ.answer;
-  document.querySelectorAll('.quiz-option').forEach((el, i) => {
-    el.classList.remove('highlighted');
-    if (i === correct) el.classList.add('correct');
-    else if (i === state.quizSelected) el.classList.add('wrong');
-  });
-  const result = document.getElementById('quizResult');
-  if (state.quizSelected === correct) {
-    result.textContent = '✅ Correct! Well done.';
-    result.style.color = 'var(--success)';
-    playTone(900, 0.2);
-    addLogEntry('Quiz: Correct');
-  } else {
-    result.textContent = '❌ Incorrect. Try again next time.';
-    result.style.color = 'var(--danger)';
-    playTone(200, 0.3);
-    addLogEntry('Quiz: Incorrect');
+let lastBrightnessCheck = 0;
+function checkHints(lm, videoEl) {
+  const now = Date.now();
+  hintDark.classList.remove('show');
+  hintFar.classList.remove('show');
+  hintEdge.classList.remove('show');
+  canvasHint.textContent = '';
+
+  if (now - lastBrightnessCheck > 1000) {
+    lastBrightnessCheck = now;
+    try {
+      const tmp = document.createElement('canvas');
+      tmp.width = videoEl.videoWidth || 640;
+      tmp.height = videoEl.videoHeight || 480;
+      const tctx = tmp.getContext('2d');
+      tctx.drawImage(videoEl, 0, 0);
+      const img = tctx.getImageData(0, 0, tmp.width, tmp.height);
+      let sum = 0;
+      for (let i = 0; i < img.data.length; i += 4) sum += (img.data[i] + img.data[i+1] + img.data[i+2]) / 3;
+      const avg = sum / (img.data.length / 4);
+      if (avg < CONFIG.darkThreshold) {
+        hintDark.classList.add('show');
+        canvasHint.textContent = '⚠️ Too dark — improve lighting';
+      }
+    } catch (e) {}
+  }
+
+  const hs = getHandSize(lm);
+  if (hs < CONFIG.minHandSize) {
+    hintFar.classList.add('show');
+    canvasHint.textContent = canvasHint.textContent ? canvasHint.textContent + ' | 📉 Hand too far — move closer' : '📉 Hand too far — move closer';
+  }
+
+  const nearEdge = lm.some(p => p.x < CONFIG.edgeMargin || p.x > 1 - CONFIG.edgeMargin || p.y < CONFIG.edgeMargin || p.y > 1 - CONFIG.edgeMargin);
+  if (nearEdge) {
+    hintEdge.classList.add('show');
+    canvasHint.textContent = canvasHint.textContent ? canvasHint.textContent + ' | ⚠️ Hand partly out of frame' : '⚠️ Hand partly out of frame';
   }
 }
 
-// Detect fist hold on quiz slide to confirm answer
-const originalOnResults = onResults;
-// We already handle inside onResults via confirmed fist, but only if not paused.
-// On quiz slide we want fist to confirm selection.
-const quizFistStart = 0;
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && state.index === SLIDES.length - 1 && !state.quizAnswered) {
-    confirmQuiz();
-  }
-});
-
 /* ============================================================
-   CAMERA
+   CAMERA / MEDIAPIPE
    ============================================================ */
-startBtn.addEventListener('click', async () => {
+async function startCamera() {
   try {
-    hideCameraError();
+    cameraError.style.display = 'none';
     camEmpty.style.display = 'none';
     videoEl.style.display = 'block';
     overlayCanvas.style.display = 'block';
 
-    const videoWidth = 640;
-    const videoHeight = 480;
-    videoEl.width = videoWidth;
-    videoEl.height = videoHeight;
-    overlayCanvas.width = videoWidth;
-    overlayCanvas.height = videoHeight;
-    laserCanvas.width = videoEl.parentElement.clientWidth;
-    laserCanvas.height = videoEl.parentElement.clientHeight;
+    const vw = 640, vh = 480;
+    videoEl.width = vw; videoEl.height = vh;
+    overlayCanvas.width = vw; overlayCanvas.height = vh;
 
-    log('Loading MediaPipe Hands...');
     state.hands = new Hands({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`
+      locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${f}`
     });
     state.hands.setOptions({
-      maxNumHands: CONFIG.MAX_NUM_HANDS,
-      modelComplexity: 1,
-      minDetectionConfidence: CONFIG.DETECTION_CONFIDENCE,
-      minTrackingConfidence: CONFIG.TRACKING_CONFIDENCE
+      maxNumHands: CONFIG.maxNumHands,
+      modelComplexity: CONFIG.modelComplexity,
+      minDetectionConfidence: CONFIG.detectionConfidence,
+      minTrackingConfidence: CONFIG.trackingConfidence
     });
     state.hands.onResults(onResults);
 
-    log('Starting camera...');
     state.camera = new Camera(videoEl, {
       onFrame: async () => { await state.hands.send({ image: videoEl }); },
-      width: videoWidth,
-      height: videoHeight
+      width: vw, height: vh
     });
     await state.camera.start();
     state.cameraActive = true;
     state.mediapipeReady = true;
 
-    log('Camera active');
-    startBtn.disabled = true;
-    stopBtn.disabled = false;
-    updateSystemStatus('active', 'Active');
-    updateStatusPanel('Starting…', 'active', 'Yes');
+    startBtn.disabled = true; stopBtn.disabled = false;
+    setStatus(statusMode, 'Active', 'ok');
+    setStatus(statusGesture, 'Starting…', '');
+    setStatus(statusHand, 'Yes', 'ok');
+    log('Camera started');
   } catch (err) {
-    console.error('Camera error:', err);
+    console.error(err);
     showCameraError(err.message || 'Camera unavailable. Use HTTPS/localhost and allow camera permission.');
-    videoEl.style.display = 'none';
-    overlayCanvas.style.display = 'none';
+    videoEl.style.display = 'none'; overlayCanvas.style.display = 'none';
     camEmpty.style.display = 'flex';
-    updateSystemStatus('error', 'Camera Error');
-    updateStatusPanel('Unavailable', 'error', 'No');
+    setStatus(statusMode, 'Error', 'err');
+    setStatus(statusHand, 'No', 'err');
   }
-});
+}
 
 stopBtn.addEventListener('click', () => {
   if (state.camera) { state.camera.stop(); state.camera = null; }
-  state.hands = null;
-  state.cameraActive = false;
-  state.mediapipeReady = false;
+  state.hands = null; state.cameraActive = false; state.mediapipeReady = false;
   ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-  laserCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
-  videoEl.style.display = 'none';
-  overlayCanvas.style.display = 'none';
+  videoEl.style.display = 'none'; overlayCanvas.style.display = 'none';
   camEmpty.style.display = 'flex';
-  startBtn.disabled = false;
-  stopBtn.disabled = true;
-  state.trail = [];
-  state.landmarkHistory = [];
-  updateSystemStatus('stopped', 'Stopped');
-  updateStatusPanel('Camera Stopped', 'stopped', 'No');
+  startBtn.disabled = false; stopBtn.disabled = true;
+  state.trail = []; state.history = [];
+  setStatus(statusMode, 'Stopped', '');
+  setStatus(statusGesture, '—', '');
+  setStatus(statusHand, 'No', '');
+  setStatus(statusHandedness, '—', '');
+  setStatus(statusFingers, '0,0,0,0,0', '');
+  setStatus(statusHandSize, '—', '');
+  setStatus(statusSwipe, '0,0', '');
+  setStatus(statusReject, '—', '');
   log('Camera stopped');
 });
+startBtn.addEventListener('click', startCamera);
 
-function resizeCanvas() {
-  if (videoEl.videoWidth) {
-    overlayCanvas.width = videoEl.videoWidth;
-    overlayCanvas.height = videoEl.videoHeight;
+/* ============================================================
+   CALIBRATION (records open palm & fist for 2s each)
+   ============================================================ */
+calibrateBtn.addEventListener('click', () => {
+  if (!state.cameraActive) { alert('Start camera first'); return; }
+  state.calibrating = true;
+  state.calibStep = 1;
+  state.calibSamples = [];
+  state.calibStartTime = Date.now();
+  calibrateBtn.disabled = true;
+  calibStatus.textContent = 'Show OPEN PALM for 2 seconds…';
+  dbgCalib.textContent = 'Calibrating…';
+  log('Calibration started: open palm');
+});
+
+function runCalibration(lm, now) {
+  if (!state.calibrating) return;
+  const elapsed = now - state.calibStartTime;
+  const hs = getHandSize(lm);
+  const fs = getFingerStates(lm);
+  const ratioAvg = fs.reduce((a,b)=>a+b,0) / 5;
+  state.calibSamples.push({ hs, fs, ratioAvg, t: now });
+
+  if (state.calibStep === 1 && elapsed < 2000) {
+    calibStatus.textContent = 'Show OPEN PALM for 2 seconds… (' + Math.ceil((2000 - elapsed)/1000) + 's)';
+  } else if (state.calibStep === 1) {
+    state.calibOpenPalmAvg = state.calibSamples.reduce((a,b)=>a+b.ratioAvg,0)/state.calibSamples.length;
+    state.calibHandSize = state.calibSamples.reduce((a,b)=>a+b.hs,0)/state.calibSamples.length;
+    state.calibSamples = [];
+    state.calibStep = 2;
+    state.calibStartTime = Date.now();
+    calibStatus.textContent = 'Show CLOSED FIST for 2 seconds…';
+    log('Calibration step 2: fist');
+  } else if (state.calibStep === 2 && elapsed < 2000) {
+    calibStatus.textContent = 'Show CLOSED FIST for 2 seconds… (' + Math.ceil((2000 - elapsed)/1000) + 's)';
+  } else if (state.calibStep === 2) {
+    state.calibFistAvg = state.calibSamples.reduce((a,b)=>a+b.ratioAvg,0)/state.calibSamples.length;
+    state.calibrated = true;
+    state.calibrating = false;
+    calibrateBtn.disabled = false;
+    calibStatus.textContent = 'Calibrated ✓';
+    dbgCalib.textContent = 'Yes';
+    log('Calibration done');
   }
-  laserCanvas.width = videoEl.parentElement.clientWidth;
-  laserCanvas.height = videoEl.parentElement.clientHeight;
 }
-window.addEventListener('resize', resizeCanvas);
+
+/* ============================================================
+   MEDIAPIPE CALLBACK
+   ============================================================ */
+let lastTime = 0;
+function onResults(results) {
+  if (!state.cameraActive || !state.mediapipeReady) return;
+  const now = performance.now();
+
+  // FPS
+  const fps = lastTime ? Math.round(1000 / (now - lastTime)) : 0;
+  lastTime = now;
+  fpsBadge.textContent = 'FPS: ' + fps;
+  dbgFPS.textContent = fps;
+
+  ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+  const lmRaw = results.multiHandLandmarks && results.multiHandLandmarks[0];
+  const handedness = results.multiHandedness && results.multiHandedness[0] ? results.multiHandedness[0].label : '?';
+
+  if (!lmRaw) {
+    state.history = [];
+    state.trail = [];
+    state.stablePose = null; state.stableCount = 0; state.stableStartTime = 0;
+    setStatus(statusHandedness, '—', '');
+    setStatus(statusFingers, '0,0,0,0,0', '');
+    setStatus(statusHandSize, '—', '');
+    setStatus(statusSwipe, '0,0', '');
+    setStatus(statusReject, 'No hand', 'warn');
+    setStatus(statusGesture, 'No hand', '');
+    setStatus(statusHand, 'No', 'err');
+    hintDark.classList.remove('show'); hintFar.classList.remove('show'); hintEdge.classList.remove('show');
+    canvasHint.textContent = '';
+    return;
+  }
+
+  setStatus(statusHand, 'Yes', 'ok');
+  setStatus(statusHandedness, handedness, '');
+
+  const lm = smooth(lmRaw);
+  const fs = getFingerStates(lm);
+  const hs = getHandSize(lm);
+
+  setStatus(statusFingers, fs.join(','), '');
+  setStatus(statusHandSize, hs.toFixed(3), '');
+  dbgFingers.textContent = '[' + fs.join(',') + ']';
+  dbgHanded.textContent = handedness;
+  dbgHandSize.textContent = hs.toFixed(3);
+
+  // Calibration sampling
+  if (state.calibrating) runCalibration(lm, now);
+
+  // On-screen hints
+  checkHints(lm, videoEl);
+
+  // Draw hand skeleton (white lines, orange dots — matches MediaPipe reference style)
+  drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: '#ffffff', lineWidth: 2 });
+  drawLandmarks(ctx, lm, { color: '#f59e0b', lineWidth: 2, radius: 4 });
+
+  // Draw palm-centre trail on canvas
+  ctx.beginPath();
+  if (state.trail.length > 1) {
+    const first = state.trail[0];
+    ctx.moveTo(first.x * overlayCanvas.width, first.y * overlayCanvas.height);
+    for (const p of state.trail) ctx.lineTo(p.x * overlayCanvas.width, p.y * overlayCanvas.height);
+    ctx.strokeStyle = 'rgba(99,102,241,0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  const classified = classify(lm, handedness);
+  const pose = classified.pose;
+
+  // Stability: pose must hold for N frames OR 250 ms
+  let stablePose = null;
+  if (pose === state.stablePose) {
+    state.stableCount++;
+  } else {
+    state.stablePose = pose;
+    state.stableCount = 1;
+    state.stableStartTime = now;
+  }
+  const stableByTime = (now - state.stableStartTime) >= CONFIG.holdConfirmMs;
+  const stableByFrames = state.stableCount >= CONFIG.holdConfirmFrames;
+  const isStable = stableByTime || stableByFrames;
+
+  dbgStable.textContent = isStable ? state.stablePose : '(forming) ' + pose;
+
+  // Rejection reason
+  let reject = '';
+  if (!isStable) reject = 'unstable (' + state.stableCount + '/' + CONFIG.holdConfirmFrames + ' frames)';
+  else if (pose === 'other') reject = 'ambiguous pose';
+  else if (state.paused && pose !== 'open') reject = 'paused';
+  setStatus(statusReject, reject || '—', reject ? 'warn' : '');
+  dbgReject.textContent = reject || '—';
+
+  // ---- Actions ----
+  if (!state.paused && isStable) {
+    if (pose === 'fist') {
+      state.paused = true;
+      state.trail = [];
+      setStatus(statusMode, 'Paused', 'warn');
+      setStatus(statusGesture, '✊ Fist (Paused)', 'warn');
+      log('Fist confirmed -> Paused');
+      state.stablePose = null; state.stableCount = 0;
+      return;
+    }
+    if (pose === 'open') {
+      state.paused = false;
+      setStatus(statusMode, 'Active', 'ok');
+      setStatus(statusGesture, '🖐 Open Palm (Resume)', 'ok');
+      log('Open palm confirmed -> Active');
+      state.stablePose = null; state.stableCount = 0;
+      return;
+    }
+    // Instant gestures (no hold required)
+    if (pose === 'pinch') {
+      setStatus(statusGesture, '🤏 Pinch', 'ok');
+      log('Pinch');
+      state.stablePose = null; state.stableCount = 0;
+      return;
+    }
+    if (pose === 'point') {
+      setStatus(statusGesture, '👉 Point', 'ok');
+      log('Point');
+      state.stablePose = null; state.stableCount = 0;
+      return;
+    }
+    if (pose === 'twoFingers') {
+      setStatus(statusGesture, '✌️ Two Fingers', 'ok');
+      log('Two fingers');
+      state.stablePose = null; state.stableCount = 0;
+      return;
+    }
+    if (pose === 'thumbsUp') {
+      setStatus(statusGesture, '👍 Thumbs Up', 'ok');
+      log('Thumbs up');
+      state.stablePose = null; state.stableCount = 0;
+      return;
+    }
+  }
+
+  // Swipe detection only while open palm and stable
+  if (pose === 'open' && isStable && !state.paused) {
+    const swipe = detectSwipe(lm, now);
+    if (swipe) {
+      renderSlide(state.index + (swipe === 'Swipe Right' ? 1 : -1));
+      state.lastSwipe = now;
+      state.trail = [];
+      setStatus(statusGesture, swipe, 'ok');
+      setStatus(statusSwipe, 'swipe', 'ok');
+      log(swipe);
+      state.stablePose = null; state.stableCount = 0;
+      return;
+    }
+  }
+
+  // Live status text
+  const labelMap = { open: '🖐 Open Palm', fist: '✊ Fist', point: '👉 Point', pinch: '🤏 Pinch', twoFingers: '✌️ Two Fingers', thumbsUp: '👍 Thumbs Up' };
+  setStatus(statusGesture, labelMap[pose] || pose, isStable ? 'ok' : 'warn');
+  setStatus(statusMode, state.paused ? 'Paused' : 'Active', state.paused ? 'warn' : 'ok');
+  setStatus(statusHandedness, handedness, '');
+}
+
+/* ============================================================
+   SENSITIVITY SLIDERS
+   ============================================================ */
+sensSwipe.addEventListener('input', () => {
+  CONFIG.swipeDist = parseFloat(sensSwipe.value);
+  swipeVal.textContent = CONFIG.swipeDist;
+});
+sensStab.addEventListener('input', () => {
+  CONFIG.holdConfirmFrames = parseInt(sensStab.value);
+  stabVal.textContent = CONFIG.holdConfirmFrames;
+});
 
 /* ============================================================
    INIT
    ============================================================ */
 renderSlides();
 renderSlide(0);
-updateStatusPanel('—', 'stopped', 'No');
-log('Application initialized');
-
-// Expose confirmQuiz globally for quiz fist detection (simplified)
-// In onResults, confirmed fist already triggers pause. For quiz we need special handling.
-// We'll add a check: if on quiz slide and fist confirmed, call confirmQuiz instead of pause.
-// Patch: modify onResults fist block below is already written; we add quiz override here:
-// (quiz fist confirmation handled inline above)
-
+setStatus(statusMode, 'Stopped', '');
+setStatus(statusGesture, '—', '');
+setStatus(statusHand, 'No', '');
+setStatus(statusHandedness, '—', '');
+setStatus(statusFingers, '0,0,0,0,0', '');
+setStatus(statusHandSize, '—', '');
+setStatus(statusSwipe, '0,0', '');
+setStatus(statusReject, '—', '');
+log('Ready');
 </script>
 </body>
 </html>
