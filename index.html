@@ -3,69 +3,648 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Touchless Gesture-Controlled Website using Real-Time Hand Tracking with MediaPipe Hands">
     <title>Gesture-Controlled Website | Touchless Hand Tracking</title>
-    <meta name="description" content="A touchless gesture-controlled website using real-time hand tracking with MediaPipe Hands">
-    <link rel="stylesheet" href="style.css">
-    <!-- MediaPipe Hands libraries via CDN (loaded before script.js) -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1633958589/hands.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1623143385/camera_utils.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1623143385/drawing_utils.js"></script>
+    <!-- MediaPipe Hands via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3/drawing_utils.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #a5b4fc;
+            --success: #10b981;
+            --success-light: #6ee7b7;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-elevated: #334155;
+            --text: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            --radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        /* Header */
+        header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.025em;
+        }
+        .brand-text p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        /* Main Layout */
+        main {
+            padding: 2rem 0;
+            display: grid;
+            grid-template-columns: 380px 1fr 340px;
+            gap: 1.5rem;
+            align-items: start;
+            min-height: calc(100vh - 160px);
+        }
+        /* Panel Header */
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .panel-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .panel-title::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+        /* Camera Panel */
+        .camera-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .camera-wrap {
+            position: relative;
+            aspect-ratio: 4 / 3;
+            background: #000;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, #000 0%, #1e293b 100%);
+        }
+        .camera-wrap video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            display: block;
+        }
+        .overlay-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        .cam-empty {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            background: rgba(15, 23, 42, 0.9);
+            z-index: 10;
+        }
+        .cam-empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        .cam-empty h3 {
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .cam-empty p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        .camera-controls {
+            display: flex;
+            gap: 0.75rem;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            flex: 1;
+            justify-content: center;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover:not(:disabled) {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+        .camera-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--danger);
+            padding: 0.875rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            display: none;
+        }
+        .debug-info {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--warning);
+            padding: 0.875rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        /* Content Panel */
+        .content-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .content-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        .slide {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(30px);
+            transition: var(--transition);
+        }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+            position: relative;
+        }
+        .slide.exit {
+            transform: translateX(-30px);
+            opacity: 0;
+            visibility: hidden;
+        }
+        .slide-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+        .slide h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 1rem;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--text) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .slide p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+        .slide-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .page-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: var(--surface-elevated);
+            border-top: 1px solid var(--border);
+        }
+        .nav-btn {
+            background: var(--surface);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        .nav-btn:hover:not(:disabled) {
+            background: var(--surface-elevated);
+            color: var(--text);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .page-counter {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--surface);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+        /* Status Panel */
+        .status-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .status-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.875rem;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 10px;
+            border: 1px solid rgba(51, 65, 85, 0.3);
+        }
+        .status-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .status-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+        }
+        .status-value.mode-active {
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .status-value.mode-paused {
+            color: var(--warning);
+            border-color: rgba(245, 158, 11, 0.3);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        .status-value.mode-error {
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .gesture-legend {
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            border: 1px solid rgba(51, 65, 85, 0.3);
+        }
+        .gesture-legend h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .gesture-legend h4::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+        .legend-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .legend-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .legend-icon.swipe { color: var(--primary); }
+        .legend-icon.fist { color: var(--warning); }
+        .legend-icon.palm { color: var(--success); }
+        .legend-arrow {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        .keyboard-hint {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        .keyboard-hint h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary-light);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .keyboard-hint h4::before {
+            content: "⌨";
+        }
+        .keyboard-hint p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+        .keyboard-keys {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .keyboard-keys kbd {
+            background: var(--surface-elevated);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .privacy-note {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        .privacy-note h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--success-light);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .privacy-note h4::before {
+            content: "🔒";
+        }
+        .privacy-note p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        /* Footer */
+        footer {
+            background: rgba(15, 23, 42, 0.8);
+            border-top: 1px solid var(--border);
+            padding: 1.5rem 0;
+            margin-top: auto;
+        }
+        footer .container {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .gesture-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        /* Responsive */
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+            .status-panel {
+                grid-column: 1 / -1;
+            }
+        }
+        @media (max-width: 768px) {
+            main {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .header-inner {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            .header-right {
+                width: 100%;
+                justify-content: center;
+            }
+            .slide h2 {
+                font-size: 1.75rem;
+            }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
 
     <header>
         <div class="container header-inner">
-            <h1>👋 Gesture-Controlled Website</h1>
-            <p class="subtitle">Touchless control using real-time hand tracking & MediaPipe Hands</p>
+            <a href="#" class="brand">
+                <div class="brand-icon">👋</div>
+                <div class="brand-text">
+                    <h1>Gesture-Controlled Website</h1>
+                    <p>Touchless Hand Tracking</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="badge" id="connectionBadge" style="
+                    display: flex; align-items: center; gap: 0.5rem;
+                    padding: 0.5rem 1rem; background: var(--surface-elevated);
+                    border: 1px solid var(--border); border-radius: 20px;
+                    font-size: 0.75rem; color: var(--text-muted);
+                ">
+                    <span style="width: 6px; height: 6px; background: var(--danger); border-radius: 50%; display: inline-block;"></span>
+                    <span id="statusText">Initializing...</span>
+                </div>
+            </div>
         </div>
     </header>
 
     <main class="container">
-        <!-- Left: Camera View -->
         <section class="camera-panel">
             <div class="panel-header">
                 <span class="panel-title">Live Camera View</span>
-                <div class="camera-controls">
-                    <button id="startCam" class="btn btn-primary">Start Camera</button>
-                    <button id="stopCam" class="btn btn-danger" disabled>Stop Camera</button>
-                </div>
             </div>
             <div class="camera-wrap">
                 <video id="video" playsinline autoplay muted></video>
                 <canvas id="overlay" class="overlay-canvas"></canvas>
                 <div id="camEmpty" class="cam-empty">
-                    <p>Camera not started</p>
-                    <p class="small">Click "Start Camera" to begin gesture tracking</p>
+                    <div class="cam-empty-icon">📷</div>
+                    <h3>Camera Not Started</h3>
+                    <p>Click "Start Camera" to begin gesture tracking</p>
                 </div>
             </div>
-            <div id="cameraError" class="camera-error" style="display:none;">
-                ⚠️ Camera access denied or unavailable. Check console (F12) for details.
+            <div class="camera-controls">
+                <button id="startCam" class="btn btn-primary">Start Camera</button>
+                <button id="stopCam" class="btn btn-danger" disabled>Stop Camera</button>
             </div>
-            <div id="debugInfo" class="debug-info" style="display:none;">
-                <small>Debug info will appear here</small>
-            </div>
+            <div id="cameraError" class="camera-error"></div>
+            <div id="debugInfo" class="debug-info"></div>
         </section>
 
-        <!-- Center: Website Content -->
         <section class="content-panel">
             <div class="content-wrap">
-                <h2 id="pageTitle">Welcome</h2>
-                <div id="pageContent">
-                    <p>This is a touchless gesture-controlled website.</p>
-                    <p>Show your hand to the camera and use gestures to navigate.</p>
+                <div id="slidesContainer">
+                    <!-- Slides injected by JS -->
                 </div>
                 <div class="page-nav">
-                    <button id="prevPage" class="nav-btn nav-prev" aria-label="Previous page">&#9664;</button>
-                    <div class="page-counter" id="pageCounter">Page 1 / 5</div>
-                    <button id="nextPage" class="nav-btn nav-next" aria-label="Next page">&#9654;</button>
+                    <button id="prevPage" class="nav-btn" disabled>&#9664;</button>
+                    <div class="page-counter" id="pageCounter">Slide 1 / 6</div>
+                    <button id="nextPage" class="nav-btn">&#9654;</button>
                 </div>
             </div>
         </section>
 
-        <!-- Right: Status Panel -->
         <section class="status-panel">
             <div class="panel-header">
-                <span class="panel-title">Status Panel</span>
+                <span class="panel-title">System Status</span>
             </div>
             <div class="status-content">
                 <div class="status-item">
@@ -83,19 +662,39 @@
                 <div class="gesture-legend">
                     <h4>Gesture Guide</h4>
                     <ul class="legend-list">
-                        <li><span class="legend-swipe">👉 Swipe Right</span> → Next Page</li>
-                        <li><span class="legend-swipe">👈 Swipe Left</span> → Previous Page</li>
-                        <li><span class="legend-fist">✊ Fist</span> → Pause Control</li>
-                        <li><span class="legend-palm">🖐 Open Palm</span> → Resume</li>
+                        <li class="legend-item">
+                            <span class="legend-icon swipe">👉</span>
+                            <span>Swipe Right</span>
+                            <span class="legend-arrow">→ Next Slide</span>
+                        </li>
+                        <li class="legend-item">
+                            <span class="legend-icon swipe">👈</span>
+                            <span>Swipe Left</span>
+                            <span class="legend-arrow">→ Previous Slide</span>
+                        </li>
+                        <li class="legend-item">
+                            <span class="legend-icon fist">✊</span>
+                            <span>Closed Fist</span>
+                            <span class="legend-arrow">→ Pause Control</span>
+                        </li>
+                        <li class="legend-item">
+                            <span class="legend-icon palm">🖐</span>
+                            <span>Open Palm</span>
+                            <span class="legend-arrow">→ Resume Control</span>
+                        </li>
                     </ul>
                 </div>
                 <div class="keyboard-hint">
                     <h4>Keyboard Fallback</h4>
-                    <p>Use <kbd>←</kbd> <kbd>→</kbd> arrow keys to change pages</p>
+                    <p>Use arrow keys if camera is unavailable</p>
+                    <div class="keyboard-keys">
+                        <kbd>←</kbd>
+                        <kbd>→</kbd>
+                    </div>
                 </div>
                 <div class="privacy-note">
-                    <h4>🔒 Privacy</h4>
-                    <p>All video is processed locally in your browser. Nothing is stored or uploaded.</p>
+                    <h4>Privacy Protected</h4>
+                    <p>All video processed locally in your browser. Nothing is stored or uploaded.</p>
                 </div>
             </div>
         </section>
@@ -103,10 +702,383 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2026 Gesture-Controlled Website | CSE (Cyber Security)</p>
+            <p>&copy; 2026 Gesture-Controlled Website | CSE (Cyber Security) | Built with MediaPipe Hands</p>
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script>
+        // ========== Configuration ==========
+        const CONFIG = {
+            SWIPE_DIST: 0.25,
+            SWIPE_WINDOW: 400,
+            COOLDOWN: 900,
+            DETECTION_CONFIDENCE: 0.7,
+            TRACKING_CONFIDENCE: 0.7,
+            MAX_NUM_HANDS: 1,
+            TIPS: [8, 12, 16, 20],
+            PIPS: [6, 10, 14, 18],
+            PALM_LANDMARK: 9,
+            GESTURE_DISPLAY_MS: 800
+        };
+
+        const state = {
+            index: 0,
+            paused: false,
+            lastSwipe: 0,
+            trail: [],
+            totalSlides: 6,
+            mediapipeReady: false,
+            cameraActive: false,
+            hands: null,
+            camera: null
+        };
+
+        const SLIDES = [
+            {
+                icon: "👋",
+                title: "Welcome",
+                content: "Experience touchless control with real-time hand tracking. Navigate this website using natural hand gestures — no mouse or keyboard required."
+            },
+            {
+                icon: "🎯",
+                title: "How It Works",
+                content: "MediaPipe Hands detects 21 hand landmarks per frame. Our gesture engine analyzes finger positions and palm movement to recognize swipes, fists, and open palms."
+            },
+            {
+                icon: "📊",
+                title: "Gesture Recognition",
+                content: "• Open Palm Swipe Right → Next Slide<br>• Open Palm Swipe Left → Previous Slide<br>• Closed Fist → Pause Control<br>• Open Palm → Resume Control"
+            },
+            {
+                icon: "🛡️",
+                title: "Safety Features",
+                content: "• Fist-to-pause gesture prevents accidental triggers<br>• 900ms cooldown timer between gestures<br>• Keyboard arrow keys as fallback<br>• All processing is local — no data uploaded"
+            },
+            {
+                icon: "🔒",
+                title: "Privacy First",
+                content: "Your camera feed never leaves your device. All hand tracking runs in-browser using WebAssembly. No images, frames, or landmark data are sent to any server."
+            },
+            {
+                icon: "🎓",
+                title: "Project Info",
+                content: "Mini Project: Touchless Gesture-Controlled Website<br>Department of CSE (Cyber Security)<br>J.J. College of Engineering and Technology<br>Anna University, Chennai • November 2026"
+            }
+        ];
+
+        // ========== DOM Elements ==========
+        const videoEl = document.getElementById('video');
+        const overlayCanvas = document.getElementById('overlay');
+        const ctx = overlayCanvas.getContext('2d');
+        const camEmpty = document.getElementById('camEmpty');
+        const cameraError = document.getElementById('cameraError');
+        const debugInfo = document.getElementById('debugInfo');
+        const startBtn = document.getElementById('startCam');
+        const stopBtn = document.getElementById('stopCam');
+        const prevBtn = document.getElementById('prevPage');
+        const nextBtn = document.getElementById('nextPage');
+        const pageCounter = document.getElementById('pageCounter');
+        const slidesContainer = document.getElementById('slidesContainer');
+        const gestureText = document.getElementById('gestureText');
+        const modeText = document.getElementById('modeText');
+        const handText = document.getElementById('handText');
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.querySelector('#connectionBadge span:first-child');
+
+        // ========== Initialization ==========
+        function init() {
+            renderSlides();
+            renderSlide(0);
+            updateSystemStatus('initializing', 'Initializing...');
+            setupKeyboard();
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            log('System initialized');
+        }
+
+        function renderSlides() {
+            slidesContainer.innerHTML = SLIDES.map((slide, i) => `
+                <div class="slide${i === 0 ? ' active' : ''}" id="slide-${i}">
+                    <div class="slide-icon">${slide.icon}</div>
+                    <div class="slide-content">
+                        <h2>${slide.title}</h2>
+                        <p>${slide.content}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSlide(index) {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active', 'exit');
+                if (i === index) {
+                    slide.classList.add('active', 'fade-in');
+                    setTimeout(() => slide.classList.remove('fade-in'), 500);
+                }
+            });
+            pageCounter.textContent = `Slide ${index + 1} / ${SLIDES.length}`;
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === SLIDES.length - 1;
+        }
+
+        function goToSlide(index) {
+            state.index = Math.max(0, Math.min(SLIDES.length - 1, index));
+            renderSlide(state.index);
+        }
+
+        prevBtn.addEventListener('click', () => goToSlide(state.index - 1));
+        nextBtn.addEventListener('click', () => goToSlide(state.index + 1));
+
+        function setupKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') { e.preventDefault(); goToSlide(state.index + 1); }
+                if (e.key === 'ArrowLeft') { e.preventDefault(); goToSlide(state.index - 1); }
+            });
+        }
+
+        // ========== System Status ==========
+        function updateSystemStatus(status, text) {
+            statusText.textContent = text;
+            const dot = statusDot;
+            if (status === 'active') {
+                dot.style.background = 'var(--success)';
+                dot.style.boxShadow = '0 0 8px var(--success)';
+            } else if (status === 'paused') {
+                dot.style.background = 'var(--warning)';
+                dot.style.boxShadow = '0 0 8px var(--warning)';
+            } else if (status === 'error') {
+                dot.style.background = 'var(--danger)';
+                dot.style.boxShadow = '0 0 8px var(--danger)';
+            } else {
+                dot.style.background = 'var(--text-muted)';
+                dot.style.boxShadow = 'none';
+            }
+        }
+
+        function updateStatusPanel(gesture, mode, hand) {
+            gestureText.textContent = gesture;
+            modeText.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+            modeText.className = `status-value mode-${mode}`;
+            handText.textContent = hand;
+        }
+
+        // ========== Logging ==========
+        function log(msg) {
+            console.log('[Gesture]', msg);
+            if (debugInfo && debugInfo.style.display !== 'none') {
+                debugInfo.textContent += new Date().toLocaleTimeString() + ': ' + msg + '\n';
+                debugInfo.scrollTop = debugInfo.scrollHeight;
+            }
+        }
+
+        function showDebug() {
+            debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'd' || e.key === 'D') showDebug();
+        });
+
+        // ========== Camera & MediaPipe ==========
+        function showCameraError(msg) {
+            cameraError.style.display = 'block';
+            cameraError.textContent = '⚠️ ' + msg;
+            updateSystemStatus('error', 'Error');
+            log('ERROR: ' + msg);
+        }
+
+        function hideCameraError() {
+            cameraError.style.display = 'none';
+        }
+
+        startBtn.addEventListener('click', async () => {
+            if (!state.mediapipeReady) {
+                showCameraError('MediaPipe Hands library not loaded. Please refresh the page.');
+                return;
+            }
+
+            try {
+                hideCameraError();
+                camEmpty.style.display = 'none';
+                videoEl.style.display = 'block';
+                overlayCanvas.style.display = 'block';
+
+                const videoWidth = 640;
+                const videoHeight = 480;
+                videoEl.width = videoWidth;
+                videoEl.height = videoHeight;
+                overlayCanvas.width = videoWidth;
+                overlayCanvas.height = videoHeight;
+
+                log('Initializing MediaPipe Hands...');
+                state.hands = new Hands({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`
+                });
+                state.hands.setOptions({
+                    maxNumHands: CONFIG.MAX_NUM_HANDS,
+                    modelComplexity: 1,
+                    minDetectionConfidence: CONFIG.DETECTION_CONFIDENCE,
+                    minTrackingConfidence: CONFIG.TRACKING_CONFIDENCE
+                });
+                state.hands.onResults(onResults);
+
+                log('Starting camera stream...');
+                state.camera = new Camera(videoEl, {
+                    onFrame: async () => {
+                        await state.hands.send({ image: videoEl });
+                    },
+                    width: videoWidth,
+                    height: videoHeight
+                });
+                await state.camera.start();
+                state.cameraActive = true;
+
+                log('Camera active — gesture tracking ready');
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                updateSystemStatus('active', 'Active');
+                updateStatusPanel('Ready', 'active', 'Yes');
+            } catch (err) {
+                console.error('Camera error:', err);
+                showCameraError(err.message || 'Failed to start camera. Ensure HTTPS/localhost and camera permissions.');
+                videoEl.style.display = 'none';
+                overlayCanvas.style.display = 'none';
+                camEmpty.style.display = 'flex';
+                updateSystemStatus('error', 'Camera Error');
+                updateStatusPanel('Unavailable', 'error', 'No');
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (state.camera) {
+                state.camera.stop();
+                state.camera = null;
+            }
+            state.hands = null;
+            state.cameraActive = false;
+            state.mediapipeReady = false;
+            ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            videoEl.style.display = 'none';
+            overlayCanvas.style.display = 'none';
+            camEmpty.style.display = 'flex';
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            state.trail = [];
+            updateSystemStatus('stopped', 'Stopped');
+            updateStatusPanel('—', 'stopped', 'No');
+            log('Camera stopped');
+        });
+
+        function resizeCanvas() {
+            if (videoEl.videoWidth) {
+                overlayCanvas.width = videoEl.videoWidth;
+                overlayCanvas.height = videoEl.videoHeight;
+            }
+        }
+
+        // ========== MediaPipe Callback ==========
+        function onResults(results) {
+            if (!state.cameraActive || !state.mediapipeReady) return;
+
+            ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+            const lm = results.multiHandLandmarks && results.multiHandLandmarks[0];
+
+            if (!lm) {
+                state.trail = [];
+                updateStatusPanel('No hand', 'active', 'No');
+                return;
+            }
+
+            // Draw hand skeleton
+            drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: '#06b6d4', lineWidth: 2 });
+            drawLandmarks(ctx, lm, { color: '#f472b6', lineWidth: 2, radius: 3 });
+
+            const now = performance.now();
+
+            // Finger state detection
+            const nUp = CONFIG.TIPS.filter((tip, i) => lm[tip].y < lm[CONFIG.PIPS[i]].y).length;
+            const pose = nUp === 4 ? 'open' : nUp === 0 ? 'fist' : 'other';
+
+            // Fist = Pause
+            if (pose === 'fist') {
+                state.paused = true;
+                state.trail = [];
+                updateSystemStatus('paused', 'Paused');
+                updateStatusPanel('✊ Fist (Paused)', 'paused', 'Yes');
+                return;
+            }
+
+            // Open palm resumes
+            if (pose === 'open' && state.paused) {
+                state.paused = false;
+                state.trail = [];
+                updateSystemStatus('active', 'Active');
+            }
+
+            if (state.paused) {
+                updateStatusPanel('Show open palm to resume', 'paused', 'Yes');
+                return;
+            }
+
+            // Swipe detection (open palm only)
+            let swipe = null;
+            if (pose === 'open') {
+                swipe = detectSwipe(lm, now);
+            }
+
+            if (swipe) {
+                goToSlide(state.index + (swipe === 'Swipe Right' ? 1 : -1));
+                state.lastSwipe = now;
+                state.trail = [];
+                updateSystemStatus('active', 'Active');
+                updateStatusPanel(swipe, 'active', 'Yes');
+                // Auto-clear gesture text
+                setTimeout(() => {
+                    if (gestureText.textContent === swipe) {
+                        updateStatusPanel('Open Palm', 'active', 'Yes');
+                    }
+                }, CONFIG.GESTURE_DISPLAY_MS);
+            } else {
+                updateStatusPanel(pose === 'open' ? '🖐 Open Palm' : '👋 Hand', 'active', 'Yes');
+            }
+        }
+
+        function detectSwipe(lm, now) {
+            state.trail.push({ x: lm[CONFIG.PALM_LANDMARK].x, y: lm[CONFIG.PALM_LANDMARK].y, t: now });
+            state.trail = state.trail.filter(p => now - p.t <= CONFIG.SWIPE_WINDOW);
+
+            if (state.trail.length < 4 || now - state.lastSwipe < CONFIG.COOLDOWN) {
+                return null;
+            }
+
+            const a = state.trail[0];
+            const b = state.trail[state.trail.length - 1];
+            // Mirror X because camera view is flipped
+            const dx = -(b.x - a.x);
+            const dy = b.y - a.y;
+
+            if (Math.abs(dx) > CONFIG.SWIPE_DIST && Math.abs(dx) > 1.5 * Math.abs(dy)) {
+                return dx > 0 ? 'Swipe Right' : 'Swipe Left';
+            }
+            return null;
+        }
+
+        // ========== Library Load Check ==========
+        function checkLibraries() {
+            if (typeof Hands === 'undefined' || typeof Camera === 'undefined') {
+                log('WARNING: MediaPipe libraries not detected');
+                setTimeout(checkLibraries, 500);
+            } else {
+                state.mediapipeReady = true;
+                log('MediaPipe Hands loaded successfully');
+                updateSystemStatus('ready', 'Ready');
+            }
+        }
+
+        // Start
+        checkLibraries();
+        init();
+    </script>
 </body>
 </html>
