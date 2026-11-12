@@ -237,6 +237,7 @@ const CONFIG = {
 
   // Gesture thresholds (calibration may override)
   swipeDist: 0.25,           // fraction of normalized hand size
+  swipeWindow: 400,          // ms of hand history examined
   cooldownMs: 800,
   holdConfirmFrames: 3,      // consecutive frames required
   holdConfirmMs: 250,        // OR time stability (ms)
@@ -266,7 +267,7 @@ const SLIDES = [
 const state = {
   index: 0,
   paused: false,
-  lastSwipe: 0,
+  lastSwipe: -Infinity,
   trail: [],
   mediapipeReady: false,
   cameraActive: false,
@@ -437,7 +438,7 @@ function classify(lm, handedness) {
 function detectSwipe(lm, now) {
   // Palm centre = landmark 9, recorded with timestamps (not frame count)
   state.trail.push({ x: lm[9].x, y: lm[9].y, t: now });
-  state.trail = state.trail.filter(p => now - p.t <= 400);
+  state.trail = state.trail.filter(p => now - p.t <= CONFIG.swipeWindow);
 
   if (state.trail.length < 4) return null;
   if (now - state.lastSwipe < CONFIG.cooldownMs) return null;
@@ -455,7 +456,9 @@ function detectSwipe(lm, now) {
   const hs = state.calibrated ? state.calibHandSize : getHandSize(lm);
   const distThresh = CONFIG.swipeDist * hs;
   if (Math.abs(dx) < distThresh) return null;
-  if (speed < 0.4) return null; // too slow
+  if (speed < 0.2) return null; // lowered threshold for easier triggering
+
+  console.log('[Swipe]', dx > 0 ? 'Swipe Right' : 'Swipe Left', 'dx=', dx.toFixed(3), 'speed=', speed.toFixed(2));
 
   return dx > 0 ? 'Swipe Right' : 'Swipe Left';
 }
@@ -776,6 +779,9 @@ function onResults(results) {
     }
     setStatus(statusGesture, '🖐 Open Palm', 'ok');
     setStatus(statusSwipe, '0,0', '');
+  } else {
+    // Clear trail when hand is not open — prevents stale points from causing false swipes
+    state.trail = [];
   }
 
   // Live status text
